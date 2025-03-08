@@ -1,0 +1,57 @@
+<Window
+    x:Class="PRTGInsight.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PRTGInsight"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <!-- Login Frame (visible initially) -->
+        <Frame x:Name="LoginFrame" Visibility="Visible" />
+
+        <!-- Main Navigation (hidden initially) -->
+        <NavigationView x:Name="NavView" 
+                        Visibility="Collapsed"
+                        IsSettingsVisible="True"
+                        IsBackButtonVisible="Collapsed"
+                        SelectionChanged="NavView_SelectionChanged"
+                        BackRequested="NavView_BackRequested"
+                        PaneDisplayMode="Auto">
+
+            <!-- Logo in NavigationView header -->
+            <NavigationView.PaneHeader>
+                <Grid Height="40" Margin="12,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Source="/Assets/PRTGLogo.png" Width="28" Height="28" VerticalAlignment="Center"/>
+                    <TextBlock Text="PRTG Insight" 
+                               Grid.Column="1" 
+                               VerticalAlignment="Center" 
+                               Margin="12,0,0,0"
+                               Style="{StaticResource SubtitleTextBlockStyle}"/>
+                </Grid>
+            </NavigationView.PaneHeader>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Dashboard" Tag="dashboard" Icon="Home" />
+                <NavigationViewItem Content="Sensors" Tag="sensors" Icon="PreviewLink" />
+                <NavigationViewItem Content="Devices" Tag="devices" Icon="AllApps" />
+                <NavigationViewItem Content="Reports" Tag="reports" Icon="Document" />
+                <NavigationViewItem Content="Logout" Tag="logout" Icon="LeaveChat" />
+            </NavigationView.MenuItems>
+
+            <NavigationView.PaneFooter>
+                <StackPanel Orientation="Vertical" Margin="12">
+                    <TextBlock Text="PRTG Insight" Style="{StaticResource CaptionTextBlockStyle}" Margin="0,0,0,4"/>
+                    <TextBlock Text="© 2025 Empower-U" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <!-- Content Frame will be set programmatically -->
+        </NavigationView>
+    </Grid>
+</Window>
