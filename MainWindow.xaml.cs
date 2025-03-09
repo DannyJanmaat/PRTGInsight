@@ -17,36 +17,29 @@ namespace PRTGInsight
     public sealed partial class MainWindow : Window
     {
         private ConnectionInfo _currentConnectionInfo;
-        private readonly Frame ContentFrame; // Add this line to declare ContentFrame
-
-        // Add a static instance of the current window for access throughout the app
+        private readonly Frame _contentFrame;
         public static new MainWindow Current { get; private set; }
 
         public MainWindow()
         {
             this.InitializeComponent();
             Title = "PRTG Insight";
-
-            // Store the window instance for global access
             Current = this;
 
-            // Set the window icon
-            SetWindowIcon();
+            // IMPORTANT: Remove icon setting from constructor
+            // SetWindowIcon(); // Comment out or remove this line
 
-            // Ensure LoginFrame is initialized
             if (LoginFrame == null)
             {
                 throw new InvalidOperationException("LoginFrame is not initialized.");
             }
 
-            // Initialize ContentFrame
-            ContentFrame = new Frame();
-            ContentFrame.NavigationFailed += ContentFrame_NavigationFailed;
+            _contentFrame = new Frame();
+            _contentFrame.NavigationFailed += ContentFrame_NavigationFailed;
+            NavView.Content = _contentFrame;
+            NavView.BackRequested += NavView_BackRequested;
 
-            // Register the content frame with appropriate event handlers
-            NavView.Content = ContentFrame;
-
-            // Load connection information from settings
+            // Always show the authentication page first
             LoadConnectionInfoAsync();
         }
 
@@ -57,63 +50,46 @@ namespace PRTGInsight
                 // Load connection info from file-based storage
                 ConnectionInfo connectionInfo = SettingsService.LoadConnectionInfo();
 
-                // Set it in the ConnectionManager if valid
+                // Even if saved info exists, we want the user to authenticate each time.
                 if (connectionInfo != null && !string.IsNullOrEmpty(connectionInfo.ServerUrl))
                 {
                     ConnectionManager.CurrentConnection = connectionInfo;
-                }
-
-                // Check if we have connection info
-                if (ConnectionManager.IsConnected)
-                {
-                    Debug.WriteLine("MainWindow: Found saved connection, auto-login");
+                    Debug.WriteLine("MainWindow: Saved connection info loaded but not auto-logging in.");
                     ConnectionManager.DebugConnectionInfo();
-
-                    // Auto-login with saved data
-                    HandleAutoLogin(ConnectionManager.CurrentConnection);
                 }
                 else
                 {
-                    Debug.WriteLine("MainWindow: No saved connection, showing login page");
+                    Debug.WriteLine("MainWindow: No saved connection info found.");
+                }
 
-                    // Ensure LoginFrame is initialized before navigating
-                    if (LoginFrame != null)
+                // Always show the login page
+                if (LoginFrame != null)
+                {
+                    _ = LoginFrame.Navigate(typeof(ConnectionPage));
+                    if (LoginFrame.Content is ConnectionPage connectionPage)
                     {
-                        // Navigate to the login page
-                        _ = LoginFrame.Navigate(typeof(ConnectionPage));
-
-                        // Listen for the login event
-                        if (LoginFrame.Content is ConnectionPage connectionPage)
-                        {
-                            // Remove any existing handlers to avoid duplicates
-                            connectionPage.LoginSuccessful -= OnLoginSuccessful;
-                            connectionPage.LoginSuccessful += OnLoginSuccessful;
-                            Debug.WriteLine("MainWindow: Subscribed to LoginSuccessful event");
-                        }
-                        else
-                        {
-                            Debug.WriteLine("MainWindow: LoginFrame.Content is not ConnectionPage");
-                        }
+                        connectionPage.LoginSuccessful -= OnLoginSuccessful;
+                        connectionPage.LoginSuccessful += OnLoginSuccessful;
+                        Debug.WriteLine("MainWindow: Subscribed to LoginSuccessful event");
                     }
                     else
                     {
-                        Debug.WriteLine("MainWindow: LoginFrame is not initialized");
+                        Debug.WriteLine("MainWindow: LoginFrame.Content is not ConnectionPage");
                     }
+                }
+                else
+                {
+                    Debug.WriteLine("MainWindow: LoginFrame is not initialized");
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"MainWindow: Error loading connection info: {ex.Message}");
-
-                // Show login page on error
                 if (LoginFrame != null)
                 {
                     _ = LoginFrame.Navigate(typeof(ConnectionPage));
-
-                    // Listen for the login event
                     if (LoginFrame.Content is ConnectionPage connectionPage)
                     {
-                        // Remove any existing handlers to avoid duplicates
                         connectionPage.LoginSuccessful -= OnLoginSuccessful;
                         connectionPage.LoginSuccessful += OnLoginSuccessful;
                         Debug.WriteLine("MainWindow: Subscribed to LoginSuccessful event on error path");
@@ -126,114 +102,113 @@ namespace PRTGInsight
         {
             try
             {
-                // Get the HWND of the window
-                nint hwnd = WindowNative.GetWindowHandle(this);
-
-                // Get the AppWindow
-                WindowId windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
-                AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-
-                // Set the icon
-                string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png");
-                Debug.WriteLine($"Trying to load icon from: {iconPath}");
-
-                if (File.Exists(iconPath))
+                // Get the window handle and ensure it's valid.
+                IntPtr hWnd = WindowNative.GetWindowHandle(this);
+                if (hWnd == IntPtr.Zero)
                 {
-                    appWindow.SetIcon(iconPath);
-                    Debug.WriteLine($"Window icon set successfully: {iconPath}");
+                    System.Diagnostics.Debug.WriteLine("Invalid window handle received.");
+                    return;
                 }
-                else
-                {
-                    // Try an alternative path
-                    iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png");
-                    Debug.WriteLine($"Trying alternative path: {iconPath}");
 
+                // Get the WindowId.
+                WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+                // No null check is needed here because WindowId is a struct.
+
+                // Get the AppWindow and ensure it's not null.
+                AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+                if (appWindow == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to obtain AppWindow.");
+                    return;
+                }
+
+                // Simplified array initialization
+                string[] potentialIconPaths =
+                [
+            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
+            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
+        ];
+
+                bool iconSet = false;
+                foreach (string iconPath in potentialIconPaths)
+                {
                     if (File.Exists(iconPath))
                     {
-                        appWindow.SetIcon(iconPath);
-                        Debug.WriteLine($"Window icon set successfully from alternative path: {iconPath}");
+                        try
+                        {
+                            appWindow.SetIcon(iconPath);
+                            System.Diagnostics.Debug.WriteLine($"Set window icon from: {iconPath}");
+                            iconSet = true;
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Failed to set icon from {iconPath}: {ex.Message}");
+                        }
                     }
                     else
                     {
-                        Debug.WriteLine($"Icon file not found at either path");
+                        System.Diagnostics.Debug.WriteLine($"Icon file not found: {iconPath}");
                     }
+                }
+
+                if (!iconSet)
+                {
+                    System.Diagnostics.Debug.WriteLine("WARNING: Could not set window icon from any source");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error setting window icon: {ex.Message}");
-                Debug.WriteLine($"Exception details: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Error setting window icon: {ex.Message}");
             }
         }
 
         public void HandleAutoLogin(ConnectionInfo connectionInfo)
         {
             Debug.WriteLine("HandleAutoLogin called");
-            _currentConnectionInfo = connectionInfo; // Store the connection info
+            _currentConnectionInfo = connectionInfo;
             ConnectionManager.DebugConnectionInfo();
 
-            try
+            _ = DispatcherQueue.TryEnqueue(() =>
             {
-                // Make sure we're on the UI thread
-                DispatcherQueue.TryEnqueue(() =>
-                {
                 try
                 {
-                    // Hide the login frame and show navigation
                     LoginFrame.Visibility = Visibility.Collapsed;
                     NavView.Visibility = Visibility.Visible;
-
-                    // Navigate to the dashboard
-                    _ = ContentFrame.Navigate(typeof(DashboardPage));
-                    NavView.SelectedItem = NavView.MenuItems[0]; // Select dashboard
-
+                    _ = _contentFrame.Navigate(typeof(DashboardPage));
+                    NavView.SelectedItem = NavView.MenuItems[0];
                     Debug.WriteLine("MainWindow: Navigation to dashboard complete in HandleAutoLogin");
                 }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"MainWindow: Error in HandleAutoLogin UI operation: {ex.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"MainWindow: Error in HandleAutoLogin: {ex.Message}");
-            }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"MainWindow: Error in HandleAutoLogin UI operation: {ex.Message}");
+                }
+            });
         }
 
         private void OnLoginSuccessful(object sender, ConnectionInfo connectionInfo)
         {
             Debug.WriteLine("MainWindow: OnLoginSuccessful called");
-            _currentConnectionInfo = connectionInfo; // Store the connection info locally
+            _currentConnectionInfo = connectionInfo;
             ConnectionManager.DebugConnectionInfo();
 
-            try
+            _ = DispatcherQueue.TryEnqueue(() =>
             {
-                // Make sure we're on the UI thread
-                DispatcherQueue.TryEnqueue(() =>
+                try
                 {
-                    try
-                    {
-                        // Hide the login frame and show navigation
-                        LoginFrame.Visibility = Visibility.Collapsed;
-                        NavView.Visibility = Visibility.Visible;
-
-                        // Navigate to the dashboard
-                        _ = ContentFrame.Navigate(typeof(DashboardPage));
-                        NavView.SelectedItem = NavView.MenuItems[0]; // Select dashboard
-
-                        Debug.WriteLine("MainWindow: Navigation to dashboard complete in OnLoginSuccessful");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"MainWindow: Error in OnLoginSuccessful UI operation: {ex.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"MainWindow: Error in OnLoginSuccessful: {ex.Message}");
-            }
+                    LoginFrame.Visibility = Visibility.Collapsed;
+                    NavView.Visibility = Visibility.Visible;
+                    _ = _contentFrame.Navigate(typeof(DashboardPage));
+                    NavView.SelectedItem = NavView.MenuItems[0];
+                    Debug.WriteLine("MainWindow: Navigation to dashboard complete in OnLoginSuccessful");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"MainWindow: Error in OnLoginSuccessful UI operation: {ex.Message}");
+                }
+            });
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -242,21 +217,17 @@ namespace PRTGInsight
 
             if (args.IsSettingsSelected)
             {
-                _ = ContentFrame.Navigate(typeof(SettingsPage));
+                _ = _contentFrame.Navigate(typeof(SettingsPage));
                 return;
             }
 
             if (args.SelectedItemContainer is NavigationViewItem selectedItem)
             {
                 string tag = selectedItem.Tag?.ToString();
-
-                // Check if we have valid connection info
                 if (!ConnectionManager.IsConnected)
                 {
                     Debug.WriteLine("No connection info available for navigation");
                     ConnectionManager.DebugConnectionInfo();
-
-                    // Show an error message
                     ShowConnectionErrorDialog();
                     return;
                 }
@@ -267,24 +238,78 @@ namespace PRTGInsight
                 switch (tag)
                 {
                     case "dashboard":
-                        _ = ContentFrame.Navigate(typeof(DashboardPage));
+                        _ = _contentFrame.Navigate(typeof(DashboardPage));
                         break;
                     case "sensors":
-                        _ = ContentFrame.Navigate(typeof(SensorsPage));
+                        _ = _contentFrame.Navigate(typeof(SensorsPage));
                         break;
                     case "devices":
-                        _ = ContentFrame.Navigate(typeof(DevicesPage));
+                        _ = _contentFrame.Navigate(typeof(DevicesPage));
+                        break;
+                    case "alerts":
+                        _ = _contentFrame.Navigate(typeof(AlertsPage));
+                        break;
+                    case "exports":
+                        _ = _contentFrame.Navigate(typeof(ExportsPage));
+                        break;
+                    case "refresh":
+                        RefreshCurrentPage();
                         break;
                     case "reports":
-                        _ = ContentFrame.Navigate(typeof(ReportsPage));
+                        _ = _contentFrame.Navigate(typeof(ReportsPage));
                         break;
                     case "settings":
-                        _ = ContentFrame.Navigate(typeof(SettingsPage));
+                        _ = _contentFrame.Navigate(typeof(SettingsPage));
                         break;
                     case "logout":
                         Logout();
                         break;
                 }
+            }
+        }
+
+        private void RefreshCurrentPage()
+        {
+            try
+            {
+                Type currentPageType = _contentFrame.CurrentSourcePageType;
+                if (currentPageType == null)
+                {
+                    return;
+                }
+
+                if (_contentFrame.Content is FrameworkElement contentElement && contentElement.FindName("LoadingOverlay") is Grid loadingOverlay)
+                {
+                    loadingOverlay.Visibility = Visibility.Visible;
+                }
+
+                if (_contentFrame.Content is FrameworkElement page)
+                {
+                    System.Reflection.MethodInfo refreshMethod = page.GetType().GetMethod("RefreshData");
+                    if (refreshMethod != null)
+                    {
+                        _ = refreshMethod.Invoke(page, null);
+                        Debug.WriteLine($"Called RefreshData on {currentPageType.Name}");
+                    }
+                    else
+                    {
+                        _ = _contentFrame.Navigate(currentPageType);
+                        Debug.WriteLine($"Re-navigated to {currentPageType.Name} to refresh");
+                    }
+                }
+
+                if (_contentFrame.Content is FrameworkElement contentWithOverlay && contentWithOverlay.FindName("LoadingOverlay") is Grid overlay)
+                {
+                    _ = DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        await Task.Delay(1000);
+                        overlay.Visibility = Visibility.Collapsed;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error refreshing current page: {ex.Message}");
             }
         }
 
@@ -297,15 +322,12 @@ namespace PRTGInsight
                 CloseButtonText = "OK",
                 XamlRoot = this.Content.XamlRoot
             };
-
             _ = await dialog.ShowAsync();
 
-            // Navigate back to the connection page
             LoginFrame.Visibility = Visibility.Visible;
             NavView.Visibility = Visibility.Collapsed;
             _ = LoginFrame.Navigate(typeof(ConnectionPage));
 
-            // Listen for the login event
             if (LoginFrame.Content is ConnectionPage connectionPage)
             {
                 connectionPage.LoginSuccessful -= OnLoginSuccessful;
@@ -318,19 +340,16 @@ namespace PRTGInsight
             ArgumentNullException.ThrowIfNull(sender);
             ArgumentNullException.ThrowIfNull(args);
 
-            if (ContentFrame.CanGoBack)
+            if (_contentFrame.CanGoBack)
             {
-                ContentFrame.GoBack();
+                _contentFrame.GoBack();
             }
         }
 
         private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             ArgumentNullException.ThrowIfNull(sender);
-
             Debug.WriteLine($"Navigation failed: {e.Exception.Message}");
-
-            // Show an error message
             ContentDialog dialog = new()
             {
                 Title = "Navigation Failed",
@@ -343,7 +362,6 @@ namespace PRTGInsight
 
         private async void Logout()
         {
-            // Confirm logout
             ContentDialog dialog = new()
             {
                 Title = "Logout",
@@ -359,19 +377,12 @@ namespace PRTGInsight
             if (result == ContentDialogResult.Primary)
             {
                 Debug.WriteLine("Logging out and clearing connection info");
-
-                // Remove connection info
                 ConnectionManager.ClearConnection();
                 _currentConnectionInfo = null;
-
-                // Hide navigation and show login frame
                 NavView.Visibility = Visibility.Collapsed;
                 LoginFrame.Visibility = Visibility.Visible;
-
-                // Navigate to login page
                 _ = LoginFrame.Navigate(typeof(ConnectionPage));
 
-                // Listen for login event
                 if (LoginFrame.Content is ConnectionPage connectionPage)
                 {
                     connectionPage.LoginSuccessful -= OnLoginSuccessful;

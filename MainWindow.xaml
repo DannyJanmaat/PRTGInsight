@@ -27,21 +27,45 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Source="/Assets/PRTGLogo.png" Width="28" Height="28" VerticalAlignment="Center"/>
+                    <Image Source="ms-appx:///Assets/PRTGLogo.png" Width="28" Height="28" VerticalAlignment="Center"/>
                     <TextBlock Text="PRTG Insight" 
-                               Grid.Column="1" 
-                               VerticalAlignment="Center" 
-                               Margin="12,0,0,0"
-                               Style="{StaticResource SubtitleTextBlockStyle}"/>
+                   Grid.Column="1" 
+                   VerticalAlignment="Center" 
+                   Margin="12,0,0,0"
+                   Style="{StaticResource SubtitleTextBlockStyle}"/>
                 </Grid>
             </NavigationView.PaneHeader>
 
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Dashboard" Tag="dashboard" Icon="Home" />
-                <NavigationViewItem Content="Sensors" Tag="sensors" Icon="PreviewLink" />
-                <NavigationViewItem Content="Devices" Tag="devices" Icon="AllApps" />
-                <NavigationViewItem Content="Reports" Tag="reports" Icon="Document" />
-                <NavigationViewItem Content="Logout" Tag="logout" Icon="LeaveChat" />
+                <NavigationViewItem Content="Dashboard" Tag="dashboard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Sensors" Tag="sensors">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEA80;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Devices" Tag="devices">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE770;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Reports" Tag="reports">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A9;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Logout" Tag="logout">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7E8;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <NavigationView.PaneFooter>

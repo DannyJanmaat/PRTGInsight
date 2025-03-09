@@ -11,11 +11,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-// Gebruik volledige namespace voor Color om ambiguïteit te voorkomen
+// Use the full namespace for Color to avoid ambiguity
+using Windows.UI;
 
 namespace PRTGInsight.Views
 {
-    public sealed partial class SensorsPage : Microsoft.UI.Xaml.Controls.Page
+    public sealed partial class SensorsPage : Page
     {
         private readonly PrtgService _prtgService;
         private ConnectionInfo _connectionInfo;
@@ -46,7 +47,7 @@ namespace PRTGInsight.Views
 
                 Debug.WriteLine("SensorsPage: OnNavigatedTo called");
 
-                // Gebruik de verbindingsgegevens uit de ConnectionManager
+                // Use the connection info from ConnectionManager
                 _connectionInfo = ConnectionManager.CurrentConnection;
 
                 ConnectionManager.DebugConnectionInfo();
@@ -76,10 +77,10 @@ namespace PRTGInsight.Views
                 {
                     Debug.WriteLine("SensorsPage: No connection info found in settings");
 
-                    // Wacht tot de UI volledig is geladen voordat we een dialoog tonen
+                    // Wait until UI is fully loaded before showing a dialog
                     await Task.Delay(500);
 
-                    // Toon een foutmelding als de UI volledig is geladen
+                    // Show an error message if the UI is fully loaded
                     if (this.XamlRoot != null)
                     {
                         try
@@ -98,14 +99,14 @@ namespace PRTGInsight.Views
                             Debug.WriteLine($"Error showing dialog: {dialogEx.Message}");
                         }
 
-                        // Navigeer terug naar de verbindingspagina
+                        // Navigate back to the connection page
                         if (Frame.CanGoBack)
                         {
                             Frame.GoBack();
                         }
                         else
                         {
-                            Frame.Navigate(typeof(ConnectionPage));
+                            _ = Frame.Navigate(typeof(ConnectionPage));
                         }
                     }
                 }
@@ -210,7 +211,7 @@ namespace PRTGInsight.Views
             {
                 System.Diagnostics.Debug.WriteLine($"Error in SensorsListView_SelectionChanged: {ex.Message}");
 
-                // Toon een foutmelding
+                // Show an error message
                 ContentDialog dialog = new()
                 {
                     Title = "Error",
@@ -229,8 +230,6 @@ namespace PRTGInsight.Views
             {
                 ShowSensorActionsMenu(button, sensor);
             }
-
-            ArgumentNullException.ThrowIfNull(e);
         }
 
         private async void ShowSensorActionsMenu(Button button, SensorViewModel sensor)
@@ -375,60 +374,83 @@ namespace PRTGInsight.Views
             _ = Frame.Navigate(typeof(SensorDetailsPage), new Tuple<int, ConnectionInfo>(sensorId, _connectionInfo));
         }
 
+        // In ScanSensorNow method
         private async void ScanSensorNow(int sensorId)
         {
             try
             {
-                if (LoadingRing != null)
+                // Create a local copy of the LoadingRing reference to ensure it doesn't change
+                var loadingRing = LoadingRing;
+
+                if (loadingRing != null)
                 {
-                    LoadingRing.IsActive = true;
+                    // Use the dispatcher to ensure UI updates happen on UI thread
+                    _ = this.DispatcherQueue.TryEnqueue(() => {
+                        loadingRing.IsActive = true;
+                    });
                 }
+
+                // Use a cancelled token to prevent abandoned tasks
+                using var cts = new CancellationTokenSource();
 
                 // Call the PRTG API to scan the sensor now
                 bool success = await PrtgService.ScanSensorNowAsync(_connectionInfo, sensorId);
 
+                // Check if we're still in a valid UI state
+                if (this.XamlRoot == null) return;
+
                 if (success)
                 {
-                    // Show success message
-                    ContentDialog dialog = new()
+                    // Show success message with proper error handling around dialog
+                    try
                     {
-                        Title = "Success",
-                        Content = "Scan initiated successfully.",
-                        CloseButtonText = "OK",
-                        XamlRoot = this.XamlRoot
-                    };
-                    _ = await dialog.ShowAsync();
+                        ContentDialog dialog = new()
+                        {
+                            Title = "Success",
+                            Content = "Scan initiated successfully.",
+                            CloseButtonText = "OK",
+                            XamlRoot = this.XamlRoot
+                        };
+                        _ = await dialog.ShowAsync();
+                    }
+                    catch (Exception dialogEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Dialog error: {dialogEx.Message}");
+                    }
                 }
                 else
                 {
                     // Show error
-                    ContentDialog dialog = new()
+                    try
                     {
-                        Title = "Error",
-                        Content = "Failed to initiate scan. Please try again.",
-                        CloseButtonText = "OK",
-                        XamlRoot = this.XamlRoot
-                    };
-                    _ = await dialog.ShowAsync();
+                        ContentDialog dialog = new()
+                        {
+                            Title = "Error",
+                            Content = "Failed to initiate scan. Please try again.",
+                            CloseButtonText = "OK",
+                            XamlRoot = this.XamlRoot
+                        };
+                        _ = await dialog.ShowAsync();
+                    }
+                    catch (Exception dialogEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Dialog error: {dialogEx.Message}");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // Show error
-                ContentDialog dialog = new()
-                {
-                    Title = "Error",
-                    Content = $"An error occurred: {ex.Message}",
-                    CloseButtonText = "OK",
-                    XamlRoot = this.XamlRoot
-                };
-                _ = await dialog.ShowAsync();
+                System.Diagnostics.Debug.WriteLine($"Error in ScanSensorNow: {ex}");
             }
             finally
             {
-                if (LoadingRing != null)
+                // Update UI state safely
+                var loadingRing = LoadingRing;
+                if (loadingRing != null)
                 {
-                    LoadingRing.IsActive = false;
+                    _ = this.DispatcherQueue.TryEnqueue(() => {
+                        loadingRing.IsActive = false;
+                    });
                 }
             }
         }
@@ -500,6 +522,19 @@ namespace PRTGInsight.Views
 
                 // Update the ListView
                 LoadSensorsForCurrentPage();
+            }
+        }
+
+        // This method is needed by the RefreshService
+        public async void RefreshData()
+        {
+            try
+            {
+                await LoadSensorsAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in RefreshData: {ex.Message}");
             }
         }
 
@@ -687,7 +722,7 @@ namespace PRTGInsight.Views
         public string LastValue { get; }
         public DateTime LastCheck { get; }
         public string LastCheckFormatted => FormatTimeAgo(LastCheck);
-        public Windows.UI.Color StatusColor => GetStatusColor(Status);
+        public Color StatusColor => GetStatusColor(Status);
 
         public SensorViewModel(PrtgSensor sensor)
         {
@@ -697,7 +732,7 @@ namespace PRTGInsight.Views
             Device = sensor.Device ?? "Unknown";
             LastValue = sensor.LastValue ?? "N/A";
 
-            // Gebruik een try-catch om problemen met LastCheckDateTime af te handelen
+            // Use a try-catch to handle problems with LastCheckDateTime
             try
             {
                 LastCheck = sensor.LastCheckDateTime;
@@ -728,20 +763,20 @@ namespace PRTGInsight.Views
             }
         }
 
-        private static Windows.UI.Color GetStatusColor(string status)
+        private static Color GetStatusColor(string status)
         {
             if (string.IsNullOrEmpty(status))
             {
-                return Windows.UI.Color.FromArgb(255, 128, 128, 128); // Gray for unknown
+                return Color.FromArgb(255, 128, 128, 128); // Gray for unknown
             }
 
             return status.ToLower() switch
             {
-                "up" => Windows.UI.Color.FromArgb(255, 43, 123, 43),      // Green
-                "warning" => Windows.UI.Color.FromArgb(255, 228, 155, 15), // Orange
-                "down" => Windows.UI.Color.FromArgb(255, 209, 52, 56),     // Red
-                "paused" => Windows.UI.Color.FromArgb(255, 128, 128, 128), // Gray
-                _ => Windows.UI.Color.FromArgb(255, 128, 128, 128)         // Gray
+                "up" => Color.FromArgb(255, 43, 123, 43),      // Green
+                "warning" => Color.FromArgb(255, 228, 155, 15), // Orange
+                "down" => Color.FromArgb(255, 209, 52, 56),     // Red
+                "paused" => Color.FromArgb(255, 128, 128, 128), // Gray
+                _ => Color.FromArgb(255, 128, 128, 128)         // Gray
             };
         }
     }

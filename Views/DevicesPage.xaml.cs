@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace PRTGInsight.Views
 {
-    public sealed partial class DevicesPage : Microsoft.UI.Xaml.Controls.Page
+    public sealed partial class DevicesPage : Page
     {
         private readonly PrtgService _prtgService;
         private ConnectionInfo _connectionInfo;
@@ -41,7 +41,7 @@ namespace PRTGInsight.Views
             }
             else
             {
-                // Probeer de verbindingsgegevens te laden als ze niet zijn doorgegeven
+                // Try to load the connection info if not passed
                 _ = LoadConnectionInfoAsync();
             }
         }
@@ -54,7 +54,7 @@ namespace PRTGInsight.Views
 
                 if (_connectionInfo == null || string.IsNullOrEmpty(_connectionInfo.ServerUrl))
                 {
-                    // Toon een foutmelding
+                    // Show an error message
                     ContentDialog dialog = new()
                     {
                         Title = "Connection Error",
@@ -62,22 +62,22 @@ namespace PRTGInsight.Views
                         CloseButtonText = "OK",
                         XamlRoot = this.XamlRoot
                     };
-                    await dialog.ShowAsync();
+                    _ = await dialog.ShowAsync();
 
-                    // Navigeer terug naar de verbindingspagina
+                    // Navigate back to the connection page
                     if (Frame.CanGoBack)
                     {
                         Frame.GoBack();
                     }
                     else
                     {
-                        Frame.Navigate(typeof(ConnectionPage));
+                        _ = Frame.Navigate(typeof(ConnectionPage));
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Toon een foutmelding
+                // Show an error message
                 ContentDialog dialog = new()
                 {
                     Title = "Error",
@@ -85,19 +85,19 @@ namespace PRTGInsight.Views
                     CloseButtonText = "OK",
                     XamlRoot = this.XamlRoot
                 };
-                await dialog.ShowAsync();
+                _ = await dialog.ShowAsync();
             }
         }
 
         private async void OnPageLoaded(object _, RoutedEventArgs __)
         {
-            // Controleer of we verbindingsgegevens hebben
+            // Check if we have connection info
             if (_connectionInfo == null || string.IsNullOrEmpty(_connectionInfo.ServerUrl))
             {
                 await LoadConnectionInfoAsync();
             }
 
-            // Alleen apparaten laden als we verbindingsgegevens hebben
+            // Only load devices if we have connection info
             if (_connectionInfo != null && !string.IsNullOrEmpty(_connectionInfo.ServerUrl))
             {
                 await LoadDevicesAsync();
@@ -138,7 +138,20 @@ namespace PRTGInsight.Views
             if (DevicesListView?.SelectedItem is DeviceViewModel)
             {
                 // Navigate to device details or show sensors for this device
-                Frame.Navigate(typeof(SensorsPage), _connectionInfo);
+                _ = Frame.Navigate(typeof(SensorsPage), _connectionInfo);
+            }
+        }
+
+        // Method required by RefreshService
+        public async void RefreshData()
+        {
+            try
+            {
+                await LoadDevicesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in RefreshData: {ex.Message}");
             }
         }
 
@@ -148,13 +161,13 @@ namespace PRTGInsight.Views
             {
                 Debug.WriteLine("DevicesPage: LoadDevicesAsync called");
 
-                // Controleer of we verbindingsgegevens hebben
+                // Check if we have connection info
                 if (_connectionInfo == null || string.IsNullOrEmpty(_connectionInfo.ServerUrl))
                 {
                     Debug.WriteLine("DevicesPage: No connection info, trying to load from ConnectionManager");
                     _connectionInfo = ConnectionManager.CurrentConnection;
 
-                    // Als we nog steeds geen verbindingsgegevens hebben, stoppen we
+                    // If we still don't have connection info, stop
                     if (_connectionInfo == null || string.IsNullOrEmpty(_connectionInfo.ServerUrl))
                     {
                         Debug.WriteLine("DevicesPage: Still no connection info, showing error");
@@ -165,10 +178,10 @@ namespace PRTGInsight.Views
 
                 ConnectionManager.DebugConnectionInfo();
 
-                // Controleer of de UI-elementen zijn geïnitialiseerd
+                // Check if UI elements are initialized
                 if (LoadingRing == null || DevicesListView == null)
                 {
-                    // Log een foutmelding
+                    // Log an error
                     Debug.WriteLine("DevicesPage: UI elements not initialized in LoadDevicesAsync");
                     return;
                 }
@@ -194,7 +207,7 @@ namespace PRTGInsight.Views
 
                 Debug.WriteLine($"DevicesPage: Retrieved {devices.Count} devices");
 
-                // Controleer of devices niet null is
+                // Check if devices is null
                 if (devices == null)
                 {
                     devices = [];
@@ -223,11 +236,11 @@ namespace PRTGInsight.Views
             }
             catch (Exception ex)
             {
-                // Log de fout
+                // Log the error
                 Debug.WriteLine($"DevicesPage: Error in LoadDevicesAsync: {ex.Message}");
                 Debug.WriteLine($"DevicesPage: Exception details: {ex}");
 
-                // Toon een foutmelding als de UI-elementen zijn geïnitialiseerd
+                // Show an error message if the UI elements are initialized
                 if (this.XamlRoot != null)
                 {
                     try
@@ -240,7 +253,7 @@ namespace PRTGInsight.Views
                             XamlRoot = this.XamlRoot
                         };
 
-                        await dialog.ShowAsync();
+                        _ = await dialog.ShowAsync();
                     }
                     catch (Exception dialogEx)
                     {
@@ -250,7 +263,7 @@ namespace PRTGInsight.Views
             }
             finally
             {
-                // Controleer of de UI-elementen zijn geïnitialiseerd voordat we ze bijwerken
+                // Check if the UI elements are initialized before updating them
                 if (LoadingRing != null && DevicesListView != null)
                 {
                     LoadingRing.IsActive = false;

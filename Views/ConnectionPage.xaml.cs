@@ -17,23 +17,19 @@ namespace PRTGInsight.Views
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isInitialized = false;
 
-        // Event voor succesvolle login
+        // Event for a successful login
         public event EventHandler<ConnectionInfo> LoginSuccessful;
 
         public ConnectionPage()
         {
             this.InitializeComponent();
             _prtgService = new PrtgService();
-
-            // Add a Loaded event handler to set up initial state after all elements are loaded
             this.Loaded += OnPageLoaded;
         }
 
         private async void OnPageLoaded(object _, RoutedEventArgs __)
         {
             _isInitialized = true;
-
-            // Set initial visibility state
             UpdateAuthPanelsVisibility();
 
             // Load login history
@@ -41,9 +37,26 @@ namespace PRTGInsight.Views
             LoginHistoryListView.ItemsSource = loginHistory;
         }
 
+        private void EnsureUIComponents()
+        {
+            if (LoadingProgressRing == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Warning: LoadingProgressRing is null");
+            }
+
+            if (ConnectButton == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Warning: ConnectButton is null");
+            }
+
+            if (CancelButton == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Warning: CancelButton is null");
+            }
+        }
+
         private void AuthType_Changed(object _, RoutedEventArgs __)
         {
-            // Only update visibility if the page is fully initialized
             if (_isInitialized)
             {
                 UpdateAuthPanelsVisibility();
@@ -52,16 +65,12 @@ namespace PRTGInsight.Views
 
         private void UpdateAuthPanelsVisibility()
         {
-            // Make sure all UI elements exist before accessing them
+            // Ensure UI elements exist before modifying visibility
             if (UsernamePasswordRadio != null && UsernamePasswordPanel != null && ApiKeyPanel != null)
             {
                 bool useUsernamePassword = UsernamePasswordRadio.IsChecked == true;
-
-                UsernamePasswordPanel.Visibility = useUsernamePassword ?
-                    Visibility.Visible : Visibility.Collapsed;
-
-                ApiKeyPanel.Visibility = useUsernamePassword ?
-                    Visibility.Collapsed : Visibility.Visible;
+                UsernamePasswordPanel.Visibility = useUsernamePassword ? Visibility.Visible : Visibility.Collapsed;
+                ApiKeyPanel.Visibility = useUsernamePassword ? Visibility.Collapsed : Visibility.Visible;
             }
         }
 
@@ -78,16 +87,13 @@ namespace PRTGInsight.Views
         private void ToggleHistoryPane(object sender, RoutedEventArgs e)
         {
             ArgumentNullException.ThrowIfNull(sender);
-
             ArgumentNullException.ThrowIfNull(e);
-
             LoginSplitView.IsPaneOpen = !LoginSplitView.IsPaneOpen;
         }
 
         private void LoginHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ArgumentNullException.ThrowIfNull(sender);
-
             ArgumentNullException.ThrowIfNull(e);
 
             if (LoginHistoryListView.SelectedItem is string selectedUsername)
@@ -98,12 +104,23 @@ namespace PRTGInsight.Views
             }
         }
 
+        protected override void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            base.OnUnloaded(sender, e);
+
+            // Clean up event handlers
+            this.Loaded -= OnPageLoaded;
+
+            // Cancel any pending operations
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        }
         private async Task TestConnection()
         {
             // Get values from UI
             string serverUrl = ServerUrlTextBox.Text;
             bool useApiKey = ApiKeyRadio.IsChecked == true;
-
             string username = useApiKey ? string.Empty : UsernameTextBox.Text;
             string password = useApiKey ? string.Empty : PasswordBox.Password;
             string apiKey = useApiKey ? ApiKeyBox.Password : string.Empty;
@@ -116,7 +133,6 @@ namespace PRTGInsight.Views
                 StatusInfoBar.IsOpen = true;
                 return;
             }
-
             if (useApiKey && string.IsNullOrWhiteSpace(apiKey))
             {
                 StatusInfoBar.Message = "Please enter an API Key";
@@ -134,33 +150,41 @@ namespace PRTGInsight.Views
 
             try
             {
-                // Show loading indicator and enable cancel button
-                LoadingRing.IsActive = true;
+                // Show loading indicator and disable buttons
+                LoadingProgressRing.IsActive = true; // Updated reference
                 ConnectButton.IsEnabled = false;
                 CancelButton.IsEnabled = true;
                 StatusInfoBar.IsOpen = false;
+                SslWarningInfoBar.IsOpen = false;
 
                 // Create cancellation token
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                // Test connection
+                // Update status and test connection
                 StatusInfoBar.Title = "Connecting...";
                 StatusInfoBar.Message = "Attempting to connect to PRTG server...";
                 StatusInfoBar.Severity = InfoBarSeverity.Informational;
                 StatusInfoBar.IsOpen = true;
 
+                // Perform connection test using appropriate method
                 PrtgStatus status = useApiKey
                     ? await PrtgService.TestConnectionWithApiKeyAsync(serverUrl, apiKey, _cancellationTokenSource.Token)
                     : await PrtgService.TestConnectionAsync(serverUrl, username, password, _cancellationTokenSource.Token);
 
-                // Update UI based on result
+                // Display SSL warning if needed
+                if (status.HasSslWarning)
+                {
+                    SslWarningInfoBar.IsOpen = true;
+                }
+
+                // If connected, prepare ConnectionInfo, save settings, and navigate
                 if (status.IsConnected)
                 {
                     StatusInfoBar.Title = "Connected Successfully";
                     StatusInfoBar.Message = $"PRTG Version: {status.Version}";
                     StatusInfoBar.Severity = InfoBarSeverity.Success;
 
-                    // Create connection info to pass to dashboard
+                    // Create connection info based on input and test result
                     ConnectionInfo connectionInfo = new()
                     {
                         ServerUrl = serverUrl,
@@ -168,20 +192,17 @@ namespace PRTGInsight.Views
                         Password = password,
                         ApiKey = apiKey,
                         UseApiKey = useApiKey,
-                        IgnoreSslErrors = IgnoreSslCheckBox.IsChecked ?? true,
+                        IgnoreSslErrors = true,
                         PrtgVersion = status.Version
                     };
 
                     Debug.WriteLine("ConnectionPage: Connection successful");
                     Debug.WriteLine($"ConnectionPage: Created connection info - URL={connectionInfo.ServerUrl}, UseApiKey={connectionInfo.UseApiKey}");
 
-                    // Set the connection in the ConnectionManager
+                    // Update ConnectionManager and save settings
                     ConnectionManager.CurrentConnection = connectionInfo;
-
-                    // Save connection info to settings
                     await SaveConnectionInfoAsync(connectionInfo);
-
-                    Debug.WriteLine("ConnectionPage: Connection info saved to settings");
+                    Debug.WriteLine("ConnectionPage: Connection info saved");
 
                     // Save username to login history if using username/password
                     if (!useApiKey && !string.IsNullOrEmpty(username))
@@ -189,24 +210,20 @@ namespace PRTGInsight.Views
                         await LoginHistoryService.AddUsernameToHistoryAsync(username);
                     }
 
-                    // Debug the ConnectionManager
                     ConnectionManager.DebugConnectionInfo();
 
-                    // Add a short delay to show the success message before navigating
+                    // Add a brief delay for user feedback
                     await Task.Delay(1500);
 
-                    // IMPORTANT: Make sure the event is actually triggered
-                    // Check if there are any subscribers before invoking
-                    if (LoginSuccessful != null)
+                    // Trigger login event if subscribed; otherwise, navigate directly
+                    if (LoginSuccessful is not null)
                     {
                         Debug.WriteLine("ConnectionPage: Triggering LoginSuccessful event");
                         LoginSuccessful.Invoke(this, connectionInfo);
                     }
                     else
                     {
-                        Debug.WriteLine("ConnectionPage: No subscribers to LoginSuccessful event");
-
-                        // As a fallback, try to navigate directly
+                        Debug.WriteLine("ConnectionPage: No subscribers to LoginSuccessful event; using fallback navigation");
                         NavigateToDashboard(connectionInfo);
                     }
                 }
@@ -228,7 +245,7 @@ namespace PRTGInsight.Views
             finally
             {
                 // Reset UI state
-                LoadingRing.IsActive = false;
+                LoadingProgressRing.IsActive = false; // Updated reference
                 ConnectButton.IsEnabled = true;
                 CancelButton.IsEnabled = false;
             }
@@ -238,33 +255,36 @@ namespace PRTGInsight.Views
         {
             try
             {
-                // Try to find the main window and navigate
-                if (MainWindow.Current != null)
+                // Use MainWindow's method to handle post-login navigation if available
+                if (MainWindow.Current != null && MainWindow.Current.Content != null)
                 {
-                    Debug.WriteLine("ConnectionPage: Using MainWindow.Current to navigate");
-                    MainWindow.Current.HandleAutoLogin(connectionInfo);
+                    System.Diagnostics.Debug.WriteLine("ConnectionPage: Using MainWindow.Current to navigate");
+
+                    // Create a local reference to prevent GC
+                    var mainWindow = MainWindow.Current;
+
+                    // Call the method
+                    mainWindow.HandleAutoLogin(connectionInfo);
                     return;
                 }
 
-                // Try to find parent frames or windows
+                // Fallback: search for a parent Frame to navigate
                 DependencyObject parent = this;
                 while (parent is not null and not Microsoft.UI.Xaml.Controls.Frame)
                 {
                     parent = VisualTreeHelper.GetParent(parent);
                 }
-
                 if (parent is Frame parentFrame)
                 {
-                    Debug.WriteLine("ConnectionPage: Using parent frame to navigate");
+                    Debug.WriteLine("ConnectionPage: Navigating using parent frame");
                     _ = parentFrame.Navigate(typeof(DashboardPage));
                     return;
                 }
-
-                Debug.WriteLine("ConnectionPage: Could not find a way to navigate");
+                Debug.WriteLine("ConnectionPage: Could not find a navigation frame");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"ConnectionPage: Error in NavigateToDashboard: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"ConnectionPage: Error in NavigateToDashboard: {ex.Message}");
             }
         }
 

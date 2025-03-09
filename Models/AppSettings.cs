@@ -1,28 +1,81 @@
 ﻿namespace PRTGInsight.Models
 {
+    /// <summary>
+    /// Represents the application settings for PRTGInsight.
+    /// </summary>
     public class AppSettings
     {
-        // Connection settings
+        /// <summary>
+        /// Gets or sets the last connection information used for connecting to a PRTG server.
+        /// </summary>
         public ConnectionInfo LastConnection { get; set; } = new ConnectionInfo();
 
-        // App theme settings
-        public string Theme { get; set; } = "System";  // "Light", "Dark", or "System"
+        /// <summary>
+        /// Gets or sets the application theme.
+        /// Possible values: "Light", "Dark", or "System".
+        /// </summary>
+        public string Theme { get; set; } = "System";
 
-        // UI preferences
+        #region UI Preferences
+
+        /// <summary>
+        /// Gets or sets a value indicating whether animations are enabled in the UI.
+        /// </summary>
         public bool EnableAnimations { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether status icons are shown in the UI.
+        /// </summary>
         public bool ShowStatusIcons { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a confirmation dialog is shown before closing the application.
+        /// </summary>
         public bool ConfirmBeforeClosing { get; set; } = true;
 
-        // Data refresh settings
-        public int AutoRefreshInterval { get; set; } = 300;  // in seconds, 0 = disabled
+        #endregion
+
+        #region Data Refresh Settings
+
+        /// <summary>
+        /// Gets or sets the auto-refresh interval in seconds.
+        /// A value of 0 disables auto-refresh.
+        /// </summary>
+        public int AutoRefreshInterval { get; set; } = 300;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether auto-refresh is enabled.
+        /// </summary>
         public bool EnableAutoRefresh { get; set; } = true;
 
-        // Alerts settings
+        #endregion
+
+        #region Alerts Settings
+
+        /// <summary>
+        /// Gets or sets a value indicating whether notifications are enabled.
+        /// </summary>
         public bool EnableNotifications { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether sound alerts are enabled.
+        /// </summary>
         public bool SoundAlerts { get; set; } = false;
 
-        // Log settings
+        #endregion
+
+        #region Log Settings
+
+        /// <summary>
+        /// Gets or sets a value indicating whether debug logging is enabled.
+        /// </summary>
         public bool EnableDebugLogging { get; set; } = false;
-        public int MaxLogSize { get; set; } = 10;  // in MB
+
+        /// <summary>
+        /// Gets or sets the maximum log size in megabytes.
+        /// </summary>
+        public int MaxLogSize { get; set; } = 10;
+
+        #endregion
     }
 }

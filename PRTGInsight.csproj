@@ -11,11 +11,17 @@
 		<EnableMsixTooling>false</EnableMsixTooling>
 		<WindowsPackageType>None</WindowsPackageType>
 		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-		<EnableDefaultPageItems>false</EnableDefaultPageItems>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);CA1416</NoWarn>
+		<ApplicationDefinition>App.xaml</ApplicationDefinition>
+		<StartupObject>PRTGInsight.Program</StartupObject>
+		<DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+		<NoWarn>$(NoWarn);CA1416;CA1822;IDE0060</NoWarn>
+		<ApplicationIcon>Assets\PRTGInsight.ico</ApplicationIcon>
+		<!-- Explicitly disable default items to have more control -->
+		<EnableDefaultItems>false</EnableDefaultItems>
 	</PropertyGroup>
 
+	<!-- Package references -->
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
@@ -31,66 +37,69 @@
 		<PackageReference Include="PrtgApi" Version="0.9.19" />
 	</ItemGroup>
 
+	<!-- Manifest and other configuration -->
 	<ItemGroup>
-		<None Update="app.manifest">
+		<None Include="app.config" />
+		<None Include="app.manifest">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
+	<!-- Assets with Always CopyToOutputDirectory -->
 	<ItemGroup>
-		<Content Include="Assets\PRTGLogo.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<Content Include="Assets\**\*">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
-	<!-- Explicitly include all XAML files -->
+	<!-- XAML files -->
 	<ItemGroup>
+		<ApplicationDefinition Include="App.xaml">
+			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
+		</ApplicationDefinition>
 		<Page Include="MainWindow.xaml">
 			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
 		</Page>
 		<Page Include="MainPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
 		</Page>
-		<Page Include="Views\ConnectionPage.xaml">
+		<Page Include="Views\*.xaml">
 			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\DashboardPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\DevicesPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\SensorsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\SensorDetailsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\SensorHistoryPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\SettingsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Include="Views\ReportsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
 		</Page>
 	</ItemGroup>
 
-	<!-- Explicitly include model and service classes -->
+	<!-- Code files -->
 	<ItemGroup>
-		<Compile Update="Models\ConnectionInfo.cs" />
-		<Compile Update="Models\PrtgDevice.cs" />
-		<Compile Update="Models\PrtgGroup.cs" />
-		<Compile Update="Models\PrtgLog.cs" />
-		<Compile Update="Models\PrtgSensor.cs" />
-		<Compile Update="Models\PrtgSensorDetails.cs" />
-		<Compile Update="Models\PrtgSensorHistoryItem.cs" />
-		<Compile Update="Models\PrtgStatus.cs" />
-		<Compile Update="Models\PrtgSystemStatus.cs" />
-		<Compile Update="Services\SettingsService.cs" />
-		<Compile Update="Services\ReportService.cs" />
-		<Compile Update="Services\NavigationService.cs" />
-		<Compile Update="Helpers\DispatcherQueueExtensions.cs" />
+		<Compile Include="App.xaml.cs">
+			<DependentUpon>App.xaml</DependentUpon>
+		</Compile>
+		<Compile Include="MainWindow.xaml.cs">
+			<DependentUpon>MainWindow.xaml</DependentUpon>
+		</Compile>
+		<Compile Include="MainPage.xaml.cs">
+			<DependentUpon>MainPage.xaml</DependentUpon>
+		</Compile>
+		<Compile Include="Program.cs" />
+		<Compile Include="Views\*.xaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
+		<Compile Include="Helpers\**\*.cs" />
+		<Compile Include="Models\**\*.cs" />
+		<Compile Include="Services\**\*.cs" />
 	</ItemGroup>
+
+	<!-- Ensure folder structure exists -->
+	<ItemGroup>
+		<Folder Include="Services\Reports\" />
+	</ItemGroup>
+
+	<!-- Additional build properties to force XAML compilation -->
+	<PropertyGroup>
+		<XamlRuntime>WinUI</XamlRuntime>
+		<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+	</PropertyGroup>
 </Project>

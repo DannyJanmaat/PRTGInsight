@@ -8,109 +8,288 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer>
+        <Grid Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Settings"
-                   Style="{StaticResource TitleTextBlockStyle}"
-                   Margin="0,0,0,20"/>
+            <!-- Header -->
+            <TextBlock Grid.Row="0" 
+                       Text="Settings" 
+                       Style="{StaticResource TitleTextBlockStyle}" 
+                       FontWeight="SemiBold" 
+                       Margin="0,0,0,20"/>
 
-        <ScrollViewer Grid.Row="1">
-            <StackPanel Spacing="20">
-                <!-- Connection Settings -->
-                <StackPanel>
+            <!-- Connection Settings -->
+            <Border Grid.Row="1" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="8" 
+                    Margin="0,0,0,20"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <TextBlock Text="Connection Settings" 
                                Style="{StaticResource SubtitleTextBlockStyle}" 
-                               Margin="0,0,0,12"/>
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,16"/>
 
-                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16">
-                        <StackPanel Spacing="12">
+                    <StackPanel Grid.Row="1" Spacing="12">
+                        <TextBlock Text="Current Connection" 
+                                   Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Server URL:" 
+                                       Grid.Row="0" 
+                                       Grid.Column="0" 
+                                       VerticalAlignment="Center"/>
                             <TextBlock x:Name="ServerUrlTextBlock" 
-                                       Text="Server URL: --" 
-                                       TextWrapping="Wrap"/>
+                                       Text="--" 
+                                       Grid.Row="0" 
+                                       Grid.Column="1" 
+                                       VerticalAlignment="Center"/>
 
+                            <TextBlock Text="Authentication:" 
+                                       Grid.Row="1" 
+                                       Grid.Column="0" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,8,0,0"/>
                             <TextBlock x:Name="AuthTypeTextBlock" 
-                                       Text="Authentication: --" 
-                                       TextWrapping="Wrap"/>
+                                       Text="--" 
+                                       Grid.Row="1" 
+                                       Grid.Column="1" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,8,0,0"/>
 
-                            <TextBlock x:Name="VersionTextBlock" 
-                                       Text="PRTG Version: --" 
-                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="PRTG Version:" 
+                                       Grid.Row="2" 
+                                       Grid.Column="0" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,8,0,0"/>
+                            <TextBlock x:Name="PrtgVersionTextBlock" 
+                                       Text="--" 
+                                       Grid.Row="2" 
+                                       Grid.Column="1" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,8,0,0"/>
+                        </Grid>
+                    </StackPanel>
 
-                            <Button x:Name="ReconnectButton" 
-                                    Content="Reconnect" 
-                                    Style="{StaticResource AccentButtonStyle}"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
+                    <StackPanel Grid.Row="2" 
+                                Orientation="Horizontal" 
+                                Spacing="8" 
+                                Margin="0,16,0,0">
+                        <Button x:Name="ChangeConnectionButton" 
+                                Content="Change Connection" 
+                                Click="ChangeConnectionButton_Click"/>
+                        <Button x:Name="TestConnectionButton" 
+                                Content="Test Connection" 
+                                Click="TestConnectionButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-                <!-- App Settings -->
-                <StackPanel>
+            <!-- App Settings -->
+            <Border Grid.Row="2" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="8" 
+                    Margin="0,0,0,20"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <TextBlock Text="App Settings" 
                                Style="{StaticResource SubtitleTextBlockStyle}" 
-                               Margin="0,0,0,12"/>
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,16"/>
 
-                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16">
-                        <StackPanel Spacing="12">
-                            <ToggleSwitch x:Name="ThemeToggle" 
-                                          Header="Theme" 
-                                          OnContent="Dark" 
-                                          OffContent="Light"/>
+                    <StackPanel Grid.Row="1" Spacing="16">
+                        <!-- Theme setting -->
+                        <StackPanel>
+                            <TextBlock Text="App Theme" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" 
+                                       Margin="0,0,0,8"/>
+                            <RadioButtons x:Name="ThemeRadioButtons" 
+                                          SelectionChanged="ThemeRadioButtons_SelectionChanged">
+                                <RadioButton Content="Light" Tag="Light"/>
+                                <RadioButton Content="Dark" Tag="Dark"/>
+                                <RadioButton Content="Use system setting" Tag="Default" IsChecked="True"/>
+                            </RadioButtons>
+                        </StackPanel>
 
+                        <!-- Auto refresh -->
+                        <StackPanel>
+                            <TextBlock Text="Auto Refresh" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" 
+                                       Margin="0,0,0,8"/>
                             <ToggleSwitch x:Name="AutoRefreshToggle" 
-                                          Header="Auto Refresh" 
+                                          Header="Enable auto refresh" 
                                           OnContent="On" 
-                                          OffContent="Off"/>
-
-                            <NumberBox x:Name="RefreshIntervalBox" 
-                                       Header="Refresh Interval (seconds)"
-                                       Minimum="30"
-                                       Maximum="3600"
-                                       Value="300"
-                                       SpinButtonPlacementMode="Compact"/>
+                                          OffContent="Off"
+                                          Toggled="AutoRefreshToggle_Toggled"/>
+                            <StackPanel x:Name="RefreshIntervalPanel" 
+                                        Orientation="Horizontal" 
+                                        Spacing="8" 
+                                        Margin="0,8,0,0">
+                                <TextBlock Text="Refresh interval:" 
+                                           VerticalAlignment="Center"/>
+                                <ComboBox x:Name="RefreshIntervalComboBox" 
+                                          Width="120" 
+                                          SelectionChanged="RefreshIntervalComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="30 seconds" Tag="30"/>
+                                    <ComboBoxItem Content="1 minute" Tag="60" IsSelected="True"/>
+                                    <ComboBoxItem Content="5 minutes" Tag="300"/>
+                                    <ComboBoxItem Content="15 minutes" Tag="900"/>
+                                    <ComboBoxItem Content="30 minutes" Tag="1800"/>
+                                </ComboBox>
+                            </StackPanel>
                         </StackPanel>
-                    </Border>
-                </StackPanel>
 
-                <!-- About -->
-                <StackPanel>
+                        <!-- Default export format -->
+                        <StackPanel>
+                            <TextBlock Text="Default Export Format" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" 
+                                       Margin="0,0,0,8"/>
+                            <ComboBox x:Name="DefaultExportFormatComboBox" 
+                                      Width="120" 
+                                      HorizontalAlignment="Left"
+                                      SelectionChanged="DefaultExportFormatComboBox_SelectionChanged">
+                                <ComboBoxItem Content="JSON" Tag="json" IsSelected="True"/>
+                                <ComboBoxItem Content="CSV" Tag="csv"/>
+                                <ComboBoxItem Content="XML" Tag="xml"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Data Management -->
+            <Border Grid.Row="3" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="8" 
+                    Margin="0,0,0,20"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Data Management" 
+                               Style="{StaticResource SubtitleTextBlockStyle}" 
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,16"/>
+
+                    <StackPanel Grid.Row="1" Spacing="16">
+                        <!-- Cache settings -->
+                        <StackPanel>
+                            <TextBlock Text="Cache" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" 
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="Clearing the cache will remove all temporary data stored by the app."
+                                       TextWrapping="Wrap" 
+                                       Opacity="0.8" 
+                                       Margin="0,0,0,8"/>
+                            <Button x:Name="ClearCacheButton" 
+                                    Content="Clear Cache" 
+                                    Click="ClearCacheButton_Click"/>
+                        </StackPanel>
+
+                        <!-- Export data -->
+                        <StackPanel>
+                            <TextBlock Text="Export Data" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" 
+                                       Margin="0,0,0,8"/>
+                            <TextBlock x:Name="ExportFolderSizeTextBlock" 
+                                       Text="Export folder size: --" 
+                                       Opacity="0.8" 
+                                       Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="ClearExportsButton" 
+                                        Content="Clear All Exports" 
+                                        Click="ClearExportsButton_Click"/>
+                                <Button x:Name="OpenExportFolderButton" 
+                                        Content="Open Export Folder" 
+                                        Click="OpenExportFolderButton_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- About -->
+            <Border Grid.Row="4" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="8" 
+                    Margin="0,0,0,20"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <TextBlock Text="About" 
-               Style="{StaticResource SubtitleTextBlockStyle}" 
-               Margin="0,0,0,12"/>
+                               Style="{StaticResource SubtitleTextBlockStyle}" 
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,16"/>
 
-                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16">
-                        <StackPanel Spacing="12">
-                            <TextBlock Text="PRTG Insight" 
-                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+                    <StackPanel Grid.Row="1" Spacing="8">
+                        <TextBlock Text="PRTG Insight" 
+                                   Style="{StaticResource TitleTextBlockStyle}"/>
+                        <TextBlock x:Name="VersionTextBlock" 
+                                   Text="Version 1.0.0" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   Opacity="0.8"/>
+                        <TextBlock Text="A modern client application for PRTG Network Monitor." 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="0,8,0,0"/>
+                        <TextBlock Text="© 2025 PRTGInsight Team" 
+                                   Style="{StaticResource CaptionTextBlockStyle}" 
+                                   Opacity="0.8" 
+                                   Margin="0,16,0,0"/>
 
-                            <TextBlock Text="Version 6 maart 2025" 
-                       Style="{StaticResource BodyTextBlockStyle}"/>
-
-                            <TextBlock Text="© 2025 Danny Janmaat" 
-                       Style="{StaticResource BodyTextBlockStyle}"/>
-
-                            <HyperlinkButton Content="GitHub" 
-                             NavigateUri="https://github.com/DannyJanmaat"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                            <Button x:Name="CheckUpdatesButton" 
+                                    Content="Check for Updates" 
+                                    Click="CheckUpdatesButton_Click"/>
+                            <HyperlinkButton Content="Visit Website" 
+                                             NavigateUri="https://prtginsight.com"/>
                         </StackPanel>
-                    </Border>
-                </StackPanel>
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </Page>

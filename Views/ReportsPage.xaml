@@ -19,11 +19,143 @@
                    Style="{StaticResource TitleTextBlockStyle}"
                    Margin="0,0,0,20"/>
 
-        <Grid Grid.Row="1">
-            <TextBlock Text="Reports functionality coming soon!"
-                       Style="{StaticResource SubtitleTextBlockStyle}"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
-        </Grid>
+        <ScrollViewer Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Report Options Panel -->
+                <Border Grid.Column="0" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Margin="0,0,16,0">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Report Options" 
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   Margin="0,0,0,8"/>
+
+                        <!-- Report Type Selection -->
+                        <ComboBox x:Name="ReportTypeComboBox"
+                                  Header="Report Type"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="ReportTypeComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Sensor Status" Tag="SensorStatus" IsSelected="True"/>
+                            <ComboBoxItem Content="Device Status" Tag="DeviceStatus"/>
+                            <ComboBoxItem Content="Probe Report" Tag="ProbeReport"/>
+                            <ComboBoxItem Content="Group Report" Tag="GroupReport"/>
+                            <ComboBoxItem Content="Uptime Report" Tag="UptimeReport"/>
+                            <ComboBoxItem Content="Performance Report" Tag="PerformanceReport"/>
+                            <ComboBoxItem Content="Custom Report" Tag="CustomReport"/>
+                        </ComboBox>
+
+                        <!-- Object Selector (for Probe and Group reports) -->
+                        <StackPanel x:Name="ObjectSelectorPanel" Visibility="Collapsed" Spacing="8">
+                            <TextBlock Text="Select Object" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <ComboBox x:Name="ObjectComboBox"
+                                      PlaceholderText="Select object"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Date Range -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Date Range" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <DatePicker x:Name="StartDatePicker"
+                                        Header="Start Date"
+                                        HorizontalAlignment="Stretch"/>
+                            <DatePicker x:Name="EndDatePicker"
+                                        Header="End Date"
+                                        HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Format Selection -->
+                        <ComboBox x:Name="FormatComboBox"
+                                  Header="Output Format"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="Excel (.xlsx)" Tag="Excel" IsSelected="True"/>
+                            <ComboBoxItem Content="CSV (.csv)" Tag="CSV"/>
+                            <ComboBoxItem Content="PDF (.pdf)" Tag="PDF"/>
+                            <ComboBoxItem Content="HTML (.html)" Tag="HTML"/>
+                        </ComboBox>
+
+                        <!-- Generate Button -->
+                        <Button x:Name="GenerateReportButton"
+                                Content="Generate Report"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Click="GenerateReportButton_Click"
+                                Margin="0,12,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Report Preview Panel -->
+                <Border Grid.Column="1" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Report Preview" 
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   Margin="0,0,0,16"/>
+
+                        <ProgressRing x:Name="LoadingRing"
+                                      Grid.Row="1"
+                                      IsActive="False"
+                                      Width="40"
+                                      Height="40"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"/>
+
+                        <TextBlock x:Name="NoPreviewTextBlock"
+                                   Grid.Row="1"
+                                   Text="Select report options and click 'Generate Report'"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.6"/>
+
+                        <!-- Generated Report Success Message -->
+                        <StackPanel x:Name="ReportSuccessPanel"
+                                    Grid.Row="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    Spacing="12">
+
+                            <FontIcon Glyph="&#xE8FB;" 
+                                     FontSize="36" 
+                                     Foreground="#0078D7"/>
+
+                            <TextBlock x:Name="ReportSuccessTextBlock"
+                                       Text="Report has been generated successfully!"
+                                       HorizontalAlignment="Center"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                            <Button x:Name="OpenReportButton"
+                                    Content="Open Report"
+                                    Click="OpenReportButton_Click"
+                                    Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Status/Error InfoBar -->
+        <InfoBar x:Name="StatusInfoBar"
+                 Grid.Row="1"
+                 IsOpen="False"
+                 Severity="Error"
+                 VerticalAlignment="Bottom"/>
     </Grid>
 </Page>

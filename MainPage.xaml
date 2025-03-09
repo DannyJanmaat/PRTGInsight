@@ -8,7 +8,57 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-	<Grid>
-		<Frame x:Name="MainFrame"/>
-	</Grid>
+    <Grid>
+        <NavigationView x:Name="NavView" 
+                        PaneDisplayMode="Auto"
+                        IsSettingsVisible="True"
+                        IsBackButtonVisible="Collapsed"
+                        SelectionChanged="NavView_SelectionChanged"
+                        Loaded="NavView_Loaded">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Icon="Home" Content="Dashboard" Tag="dashboard"/>
+                <NavigationViewItem Icon="Globe" Content="Devices" Tag="devices"/>
+                <NavigationViewItem Icon="Comment" Content="Sensors" Tag="sensors"/>
+                <!-- Updated Alerts item using a FontIcon with a valid warning glyph -->
+                <NavigationViewItem Tag="alerts">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7BA;" />
+                    </NavigationViewItem.Icon>
+                    <NavigationViewItem.Content>
+                        Alerts
+                    </NavigationViewItem.Content>
+                </NavigationViewItem>
+                <NavigationViewItem Icon="Download" Content="Exports" Tag="exports"/>
+                <NavigationViewItem Icon="Refresh" Content="Refresh Data" Tag="refresh"/>
+            </NavigationView.MenuItems>
+
+            <NavigationView.PaneFooter>
+                <StackPanel Margin="0,12">
+                    <TextBlock x:Name="ConnectionStatusText" 
+                               Text="Connected" 
+                               Margin="14,0,0,0" 
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="Green"/>
+                    <TextBlock x:Name="ServerInfoText" 
+                               Text="Server: --" 
+                               Margin="14,4,0,0" 
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Opacity="0.8"/>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <Frame x:Name="ContentFrame"/>
+        </NavigationView>
+
+        <!-- Loading overlay -->
+        <Grid x:Name="LoadingOverlay" 
+              Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" 
+              Opacity="0.8" 
+              Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressRing IsActive="True" Width="50" Height="50" Margin="0,0,0,12"/>
+                <TextBlock Text="Loading..." Style="{StaticResource SubtitleTextBlockStyle}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </Page>

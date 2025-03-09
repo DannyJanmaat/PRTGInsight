@@ -9,16 +9,27 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <!-- Background with gradient -->
-        <Rectangle Fill="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
-        <Rectangle>
-            <Rectangle.Fill>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#001A41" Offset="0.0" />
-                    <GradientStop Color="#0E3B7C" Offset="1.0" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
+        <!-- Background with gradient and image -->
+        <Grid>
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0a1729" Offset="0.0" />
+                        <GradientStop Color="#0e3b7c" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- Background pattern -->
+            <Canvas>
+                <!-- Add subtle network pattern elements -->
+                <Ellipse Fill="#20FFFFFF" Width="120" Height="120" Canvas.Left="-60" Canvas.Top="100" Opacity="0.1"/>
+                <Ellipse Fill="#20FFFFFF" Width="150" Height="150" Canvas.Left="600" Canvas.Top="400" Opacity="0.1"/>
+                <Line X1="0" Y1="100" X2="140" Y2="240" Stroke="#30FFFFFF" StrokeThickness="1" Opacity="0.15"/>
+                <Line X1="300" Y1="0" X2="460" Y2="160" Stroke="#30FFFFFF" StrokeThickness="1" Opacity="0.15"/>
+                <Line X1="700" Y1="300" X2="560" Y2="460" Stroke="#30FFFFFF" StrokeThickness="1" Opacity="0.15"/>
+            </Canvas>
+        </Grid>
 
         <!-- Main layout with split view -->
         <SplitView x:Name="LoginSplitView" 
@@ -26,7 +37,7 @@
                    IsPaneOpen="False"
                    CompactPaneLength="0"
                    OpenPaneLength="280"
-                   PaneBackground="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                   PaneBackground="{ThemeResource LayerFillColorDefaultBrush}">
 
             <!-- Left pane for history -->
             <SplitView.Pane>
@@ -36,19 +47,34 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="Login History" 
+                    <TextBlock Text="Recent Connections" 
                                Style="{StaticResource SubtitleTextBlockStyle}" 
-                               Margin="0,0,0,12"/>
+                               Margin="0,16,0,16"/>
 
                     <ListView x:Name="LoginHistoryListView" 
                               Grid.Row="1" 
                               SelectionMode="Single"
-                              SelectionChanged="LoginHistoryListView_SelectionChanged">
+                              SelectionChanged="LoginHistoryListView_SelectionChanged"
+                              Margin="0,8,0,0"
+                              Background="Transparent">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" Margin="0,4"/>
+                                <Grid Margin="0,8,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="&#xE77B;" FontSize="16" Margin="0,0,12,0"/>
+                                    <TextBlock Text="{Binding}" Grid.Column="1" VerticalAlignment="Center"/>
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="CornerRadius" Value="4"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
                     </ListView>
                 </Grid>
             </SplitView.Pane>
@@ -58,33 +84,37 @@
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="24"
+                        CornerRadius="16"
+                        Padding="40,32"
                         MaxWidth="500"
-                        MinWidth="450">
+                        MinWidth="460"
+                        Translation="0,0,24">
+                    <!-- Card shadow effect simulated with BorderBrush -->
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <!-- Add an extra row for the loading indicator -->
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <!-- Logo and title -->
-                        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,16">
-                            <Image Source="/Assets/PRTGLogo.png" Width="80" Margin="0,0,0,12"/>
+                        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,32">
+                            <Image Source="/Assets/PRTGLogo.png" Width="100" Margin="0,0,0,20"/>
                             <TextBlock Text="PRTG Insight" 
-                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       Style="{StaticResource TitleLargeTextBlockStyle}" 
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="Enterprise Monitoring Dashboard" 
                                        Style="{StaticResource SubtitleTextBlockStyle}" 
                                        HorizontalAlignment="Center"
                                        Opacity="0.7"
-                                       Margin="0,4,0,0"/>
+                                       Margin="0,8,0,0"/>
                         </StackPanel>
 
                         <!-- Login form -->
-                        <StackPanel Grid.Row="1" Spacing="12">
+                        <StackPanel Grid.Row="1" Spacing="20">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -95,35 +125,47 @@
                                          PlaceholderText="PRTG Server URL"
                                          Header="Server URL"
                                          Width="400"
-                                         HorizontalAlignment="Left"/>
+                                         HorizontalAlignment="Stretch"/>
 
                                 <Button Grid.Column="1" 
                                         VerticalAlignment="Bottom"
                                         Margin="8,0,0,0"
-                                        ToolTipService.ToolTip="Show Login History"
+                                        ToolTipService.ToolTip="Show Recent Connections"
                                         Click="ToggleHistoryPane">
                                     <FontIcon Glyph="&#xE81C;" FontSize="16"/>
                                 </Button>
                             </Grid>
 
-                            <RadioButtons x:Name="AuthTypeRadioButtons" Header="Authentication Method">
-                                <RadioButton x:Name="UsernamePasswordRadio" Content="Username/Password" Checked="AuthType_Changed"/>
-                                <RadioButton x:Name="ApiKeyRadio" Content="API Key" IsChecked="True" Checked="AuthType_Changed"/>
-                            </RadioButtons>
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="Authentication Method" 
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"/>
+
+                                <RadioButtons x:Name="AuthTypeRadioButtons">
+                                    <RadioButton x:Name="ApiKeyRadio" 
+                                                 Content="API Key" 
+                                                 IsChecked="True" 
+                                                 Checked="AuthType_Changed"
+                                                 Margin="0,0,0,8"/>
+
+                                    <RadioButton x:Name="UsernamePasswordRadio" 
+                                                 Content="Username/Password" 
+                                                 Checked="AuthType_Changed"/>
+                                </RadioButtons>
+                            </StackPanel>
 
                             <!-- Username/Password fields -->
-                            <StackPanel x:Name="UsernamePasswordPanel" Spacing="12" Visibility="Collapsed">
+                            <StackPanel x:Name="UsernamePasswordPanel" Spacing="16" Visibility="Collapsed">
                                 <TextBox x:Name="UsernameTextBox" 
                                          PlaceholderText="Username"
                                          Header="Username"
                                          Width="400"
-                                         HorizontalAlignment="Left"/>
+                                         HorizontalAlignment="Stretch"/>
 
                                 <PasswordBox x:Name="PasswordBox"
                                              PlaceholderText="Password"
                                              Header="Password"
                                              Width="400"
-                                             HorizontalAlignment="Left"/>
+                                             HorizontalAlignment="Stretch"/>
                             </StackPanel>
 
                             <!-- API Key field -->
@@ -132,16 +174,12 @@
                                              PlaceholderText="Enter your PRTG API Key"
                                              Header="API Key"
                                              Width="400"
-                                             HorizontalAlignment="Left"/>
+                                             HorizontalAlignment="Stretch"/>
                                 <TextBlock Text="Find your API Key in PRTG under Setup > Account Settings"
                                            TextWrapping="Wrap"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                            FontSize="12"/>
                             </StackPanel>
-
-                            <CheckBox x:Name="IgnoreSslCheckBox" 
-                                      Content="Ignore SSL Certificate Errors" 
-                                      IsChecked="True"/>
                         </StackPanel>
 
                         <!-- Status info -->
@@ -151,35 +189,45 @@
                                  Severity="Informational"
                                  Title="Status"
                                  Message="Enter connection details and click Connect"
-                                 Margin="0,12,0,0"/>
+                                 Margin="0,24,0,0"/>
+
+                        <!-- SSL Warning -->
+                        <InfoBar x:Name="SslWarningInfoBar"
+                                 Grid.Row="2"
+                                 IsOpen="False"
+                                 Severity="Warning"
+                                 Title="SSL Certificate Warning"
+                                 Message="The server is using an invalid SSL certificate. The connection will proceed anyway."
+                                 Margin="0,4,0,0"/>
 
                         <!-- Connection buttons -->
-                        <Grid Grid.Row="3" Margin="0,16,0,0">
+                        <Grid Grid.Row="3" Margin="0,24,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <ProgressRing x:Name="LoadingRing" 
-                                          IsActive="False" 
-                                          Width="20" 
+                            <!-- Added ProgressRing for loading state -->
+                            <ProgressRing x:Name="LoadingProgressRing"
+                                          IsActive="False"
+                                          Width="20"
                                           Height="20"
+                                          VerticalAlignment="Center"
                                           Grid.Column="0"
-                                          VerticalAlignment="Center"/>
+                                          Margin="0,0,12,0"/>
 
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
                                 <Button x:Name="CancelButton"
                                         Content="Cancel"
                                         Click="CancelButton_Click"
                                         IsEnabled="False"
-                                        Width="80"/>
-
+                                        Width="100"/>
                                 <Button x:Name="ConnectButton"
                                         Content="Connect"
                                         Click="ConnectButton_Click"
                                         Style="{StaticResource AccentButtonStyle}"
-                                        Width="80"/>
+                                        Width="100"/>
                             </StackPanel>
                         </Grid>
                     </Grid>

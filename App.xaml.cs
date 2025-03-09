@@ -1,13 +1,18 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using PRTGInsight.Helpers;
 using PRTGInsight.Services;
 using PRTGInsight.Views;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
+using WinRT.Interop;
 
 namespace PRTGInsight
 {
@@ -24,29 +29,113 @@ namespace PRTGInsight
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            _window = new Window();
-            MainWindow = _window; // Set the static reference
-            WindowHelper.Initialize(_window); // Initialize our helper
-
-            Frame rootFrame = new();
-            rootFrame.NavigationFailed += OnNavigationFailed;
-            _window.Content = rootFrame;
-
-            if (rootFrame.Content == null)
+            try
             {
-                _ = rootFrame.Navigate(typeof(MainPage), args.Arguments);
+                _window = new Window();
+                MainWindow = _window;
+
+                // Use a local variable for the frame to ensure it doesn't get collected
+                Frame rootFrame = new();
+                rootFrame.NavigationFailed += OnNavigationFailed;
+
+                // Set window content
+                _window.Content = rootFrame;
+                _window.Title = "PRTG Insight"; // Set title directly
+
+                // IMPORTANT: No icon setting at all during startup
+
+                // Activate window first before any further operations
+                _window.Activate();
+
+                // Now that the window is activated, navigate directly to the connection page
+                _window.DispatcherQueue.TryEnqueue(() => {
+                    // Ensure window is fully initialized
+                    if (rootFrame.Content == null)
+                    {
+                        try
+                        {
+                            rootFrame.Navigate(typeof(ConnectionPage), args.Arguments);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Navigation failed: {ex.Message}");
+                        }
+                    }
+                });
             }
-
-            _window.Activate();
-
-            // Ensure connection information is loaded after the main window is created
-            _ = Task.Run(async () =>
+            catch (Exception ex)
             {
-                // Add a small delay to ensure window is fully initialized
-                await Task.Delay(500);
-                await LoadConnectionInfoAsync();
-            });
+                System.Diagnostics.Debug.WriteLine($"Critical error in OnLaunched: {ex}");
+            }
         }
+
+
+        private void DelayedSetWindowIcon()
+        {
+            try
+            {
+                // Get the window handle and ensure it's valid.
+                IntPtr hWnd = WindowNative.GetWindowHandle(_window);
+                if (hWnd == IntPtr.Zero)
+                {
+                    System.Diagnostics.Debug.WriteLine("Invalid window handle received.");
+                    return;
+                }
+
+                // Get the WindowId and AppWindow.
+                WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+                AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+                if (appWindow == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to obtain AppWindow.");
+                    return;
+                }
+
+                // Use proper array initialization syntax.
+                string[] potentialIconPaths =
+                [
+            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
+            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
+                ];
+
+                bool iconSet = false;
+                foreach (string iconPath in potentialIconPaths)
+                {
+                    if (File.Exists(iconPath))
+                    {
+                        try
+                        {
+                            appWindow.SetIcon(iconPath);
+                            System.Diagnostics.Debug.WriteLine($"Set window icon from: {iconPath}");
+                            iconSet = true;
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Failed to set icon from {iconPath}: {ex.Message}");
+                            // If a particular icon file causes an exception (for example, if the file is corrupt),
+                            // you might opt to continue to the next available file.
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Icon file not found: {iconPath}");
+                    }
+                }
+
+                if (!iconSet)
+                {
+                    System.Diagnostics.Debug.WriteLine("WARNING: Could not set window icon from any source");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting window icon: {ex.Message}");
+            }
+        }
+
 
         private static async Task LoadConnectionInfoAsync()
         {
@@ -61,8 +150,10 @@ namespace PRTGInsight
                     {
                         // Handle no connection info scenario
                         System.Diagnostics.Debug.WriteLine("No saved connection, showing login page");
-                        Frame rootFrame = MainWindow.Content as Frame;
-                        _ = rootFrame.Navigate(typeof(ConnectionPage));
+                        if (MainWindow.Content is Frame rootFrame)
+                        {
+                            _ = rootFrame.Navigate(typeof(ConnectionPage));
+                        }
                     }
                     else
                     {

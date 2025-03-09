@@ -8,290 +8,386 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Page.Resources>
+        <!-- Define the missing resource for ListViewItemStyle -->
+        <Style x:Key="ListViewItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}" />
+    </Page.Resources>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Dashboard" 
-                       Style="{StaticResource TitleTextBlockStyle}" 
-                       FontWeight="SemiBold"/>
-            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                <TextBlock x:Name="ServerUrlTextBlock" 
-                           Text="Connected to: " 
-                           Style="{StaticResource BodyTextBlockStyle}" 
-                           Opacity="0.8"/>
-                <TextBlock x:Name="PrtgVersionTextBlock" 
-                           Text="PRTG Version: " 
-                           Style="{StaticResource BodyTextBlockStyle}" 
-                           Opacity="0.8"/>
+    <ScrollViewer>
+        <Grid Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Dashboard" 
+                           Style="{StaticResource TitleTextBlockStyle}" 
+                           FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                    <TextBlock x:Name="ServerUrlTextBlock" 
+                               Text="Connected to: " 
+                               Style="{StaticResource BodyTextBlockStyle}" 
+                               Opacity="0.8"/>
+                    <TextBlock x:Name="PrtgVersionTextBlock" 
+                               Text="PRTG Version: " 
+                               Style="{StaticResource BodyTextBlockStyle}" 
+                               Opacity="0.8"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                    <Button x:Name="RefreshButton" Content="Refresh Data" Click="RefreshButton_Click"/>
+                    <Button x:Name="ExportDashboardButton" Content="Export Dashboard" Click="ExportDashboardButton_Click"/>
+                    <!-- Optionally add a Connect button for authentication -->
+                    <Button x:Name="ConnectButton" Content="Connect" Click="ConnectButton_Click"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
 
-        <!-- Status Cards -->
-        <Grid Grid.Row="1" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <!-- Status Cards -->
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Sensors Card -->
-            <Border Grid.Column="0" 
+                <!-- Sensors Card -->
+                <Border Grid.Column="0" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Margin="0,0,8,0"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Sensors" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   Opacity="0.8"/>
+                        <TextBlock x:Name="SensorCountTextBlock" 
+                                   Text="0" 
+                                   Style="{StaticResource TitleLargeTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   Grid.Row="1"/>
+                    </Grid>
+                </Border>
+
+                <!-- Devices Card -->
+                <Border Grid.Column="1" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Margin="8,0,8,0"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Devices" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   Opacity="0.8"/>
+                        <TextBlock x:Name="DeviceCountTextBlock" 
+                                   Text="0" 
+                                   Style="{StaticResource TitleLargeTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   Grid.Row="1"/>
+                    </Grid>
+                </Border>
+
+                <!-- Up Sensors Card -->
+                <Border Grid.Column="2" 
+                        Background="#E3F2FD" 
+                        BorderBrush="#81D4FA" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Margin="8,0,8,0"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Up Sensors" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   Foreground="#0277BD"/>
+                        <TextBlock x:Name="UpSensorsTextBlock" 
+                                   Text="0" 
+                                   Style="{StaticResource TitleLargeTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="#01579B" 
+                                   Grid.Row="1"/>
+                    </Grid>
+                </Border>
+
+                <!-- Down Sensors Card -->
+                <Border Grid.Column="3" 
+                        Background="#FFEBEE" 
+                        BorderBrush="#EF9A9A" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Margin="8,0,0,0"
+                        Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Down Sensors" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   Foreground="#C62828"/>
+                        <TextBlock x:Name="DownSensorsTextBlock" 
+                                   Text="0" 
+                                   Style="{StaticResource TitleLargeTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="#B71C1C" 
+                                   Grid.Row="1"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- System Status -->
+            <Border Grid.Row="2" 
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                     BorderThickness="1" 
                     CornerRadius="8" 
-                    Margin="0,0,8,0"
+                    Margin="0,0,0,20"
                     Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Sensors" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Opacity="0.8"/>
-                    <TextBlock x:Name="SensorCountTextBlock" 
-                               Text="0" 
-                               Style="{StaticResource TitleLargeTextBlockStyle}" 
+                    <TextBlock Text="System Status" 
+                               Style="{StaticResource SubtitleTextBlockStyle}" 
                                FontWeight="SemiBold" 
-                               Grid.Row="1"/>
+                               Margin="0,0,0,12"/>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- CPU Load -->
+                        <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,8,16">
+                            <TextBlock Text="CPU Load" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="CpuLoadTextBlock" 
+                                       Text="N/A" 
+                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <!-- Memory Usage -->
+                        <StackPanel Grid.Column="1" Grid.Row="0" Margin="8,0,8,16">
+                            <TextBlock Text="Memory Usage" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="MemoryUsageTextBlock" 
+                                       Text="N/A" 
+                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <!-- Uptime -->
+                        <StackPanel Grid.Column="2" Grid.Row="0" Margin="8,0,0,16">
+                            <TextBlock Text="Uptime" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="UptimeTextBlock" 
+                                       Text="N/A" 
+                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <!-- Warning Sensors -->
+                        <StackPanel Grid.Column="0" Grid.Row="1">
+                            <TextBlock Text="Warning Sensors" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="WarningSensorsTextBlock" 
+                                       Text="0" 
+                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF9800"/>
+                        </StackPanel>
+
+                        <!-- Paused Sensors -->
+                        <StackPanel Grid.Column="1" Grid.Row="1">
+                            <TextBlock Text="Paused Sensors" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="PausedSensorsTextBlock" 
+                                       Text="0" 
+                                       Style="{StaticResource TitleTextBlockStyle}" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#607D8B"/>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Border>
 
-            <!-- Devices Card -->
-            <Border Grid.Column="1" 
+            <!-- Recent Alerts -->
+            <Border Grid.Row="3" 
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                     BorderThickness="1" 
                     CornerRadius="8" 
-                    Margin="8,0,8,0"
+                    Margin="0,0,0,20"
                     Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Devices" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Opacity="0.8"/>
-                    <TextBlock x:Name="DeviceCountTextBlock" 
-                               Text="0" 
-                               Style="{StaticResource TitleLargeTextBlockStyle}" 
-                               FontWeight="SemiBold" 
-                               Grid.Row="1"/>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Recent Alerts" 
+                                   Style="{StaticResource SubtitleTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   VerticalAlignment="Center"/>
+                        <Button x:Name="ViewAllAlertsButton" 
+                                Content="View All" 
+                                Grid.Column="1"
+                                Click="ViewAllAlertsButton_Click"/>
+                    </Grid>
+
+                    <!-- Alerts ListView -->
+                    <ListView x:Name="AlertsListView" 
+                              Grid.Row="1" 
+                              Margin="0,12,0,0" 
+                              SelectionMode="None" 
+                              ItemContainerStyle="{StaticResource ListViewItemStyle}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="4" 
+                                            Height="24" 
+                                            CornerRadius="2" 
+                                            Background="{Binding StatusColor}" 
+                                            Margin="0,0,12,0"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Message}" 
+                                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Priority}" 
+                                                   Style="{StaticResource CaptionTextBlockStyle}" 
+                                                   Opacity="0.7" 
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" 
+                                               Text="{Binding TimeStamp}" 
+                                               Style="{StaticResource CaptionTextBlockStyle}" 
+                                               Opacity="0.7" 
+                                               VerticalAlignment="Top" 
+                                               Margin="12,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- Empty state for alerts -->
+                    <Grid Grid.Row="1" Margin="0,12,0,0" x:Name="AlertsEmptyState" Visibility="Collapsed">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE10F;" FontSize="24" Opacity="0.5"/>
+                            <TextBlock Text="No alerts found" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.5" 
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Border>
 
-            <!-- Up Sensors Card -->
-            <Border Grid.Column="2" 
-                    Background="#E3F2FD" 
-                    BorderBrush="#81D4FA" 
+            <!-- Top Sensors by Load -->
+            <Border Grid.Row="4" 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                     BorderThickness="1" 
                     CornerRadius="8" 
-                    Margin="8,0,8,0"
                     Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Up Sensors" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Foreground="#0277BD"/>
-                    <TextBlock x:Name="UpSensorsTextBlock" 
-                               Text="0" 
-                               Style="{StaticResource TitleLargeTextBlockStyle}" 
+                    <TextBlock Text="Top Sensors by Load" 
+                               Style="{StaticResource SubtitleTextBlockStyle}" 
                                FontWeight="SemiBold" 
-                               Foreground="#01579B" 
-                               Grid.Row="1"/>
-                </Grid>
-            </Border>
+                               Margin="0,0,0,12"/>
+                    <!-- Top Sensors ListView -->
+                    <ListView x:Name="TopSensorsListView" 
+                              Grid.Row="1" 
+                              SelectionMode="None"
+                              ItemContainerStyle="{StaticResource ListViewItemStyle}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="4" 
+                                            Height="24" 
+                                            CornerRadius="2" 
+                                            Background="{Binding StatusColor}" 
+                                            Margin="0,0,12,0"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" 
+                                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Device}" 
+                                                   Style="{StaticResource CaptionTextBlockStyle}" 
+                                                   Opacity="0.7" 
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" 
+                                               Text="{Binding LastValue}" 
+                                               Style="{StaticResource BodyTextBlockStyle}" 
+                                               FontWeight="SemiBold" 
+                                               VerticalAlignment="Center" 
+                                               Margin="12,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
-            <!-- Down Sensors Card -->
-            <Border Grid.Column="3" 
-                    Background="#FFEBEE" 
-                    BorderBrush="#EF9A9A" 
-                    BorderThickness="1" 
-                    CornerRadius="8" 
-                    Margin="8,0,0,0"
-                    Padding="16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="Down Sensors" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Foreground="#C62828"/>
-                    <TextBlock x:Name="DownSensorsTextBlock" 
-                               Text="0" 
-                               Style="{StaticResource TitleLargeTextBlockStyle}" 
-                               FontWeight="SemiBold" 
-                               Foreground="#B71C1C" 
-                               Grid.Row="1"/>
+                    <!-- Empty state for top sensors -->
+                    <Grid Grid.Row="1" x:Name="SensorsEmptyState" Visibility="Collapsed">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE10F;" FontSize="24" Opacity="0.5"/>
+                            <TextBlock Text="No sensors found" 
+                                       Style="{StaticResource BodyTextBlockStyle}" 
+                                       Opacity="0.5" 
+                                       Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
-
-        <!-- System Status -->
-        <Border Grid.Row="2" 
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
-                BorderThickness="1" 
-                CornerRadius="8" 
-                Margin="0,0,0,20"
-                Padding="16">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="System Status" 
-                           Style="{StaticResource SubtitleTextBlockStyle}" 
-                           FontWeight="SemiBold" 
-                           Margin="0,0,0,12"/>
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- CPU Load -->
-                    <TextBlock Text="CPU Load" 
-                               Grid.Column="0" 
-                               Grid.Row="0" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Opacity="0.8"/>
-                    <TextBlock x:Name="CpuLoadTextBlock" 
-                               Text="N/A" 
-                               Grid.Column="0" 
-                               Grid.Row="1" 
-                               Style="{StaticResource SubtitleTextBlockStyle}" 
-                               FontWeight="SemiBold"/>
-
-                    <!-- Memory -->
-                    <TextBlock Text="Memory Usage" 
-                               Grid.Column="1" 
-                               Grid.Row="0" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Opacity="0.8"/>
-                    <TextBlock x:Name="MemoryUsageTextBlock" 
-                               Text="N/A" 
-                               Grid.Column="1" 
-                               Grid.Row="1" 
-                               Style="{StaticResource SubtitleTextBlockStyle}" 
-                               FontWeight="SemiBold"/>
-
-                    <!-- Uptime -->
-                    <TextBlock Text="System Uptime" 
-                               Grid.Column="2" 
-                               Grid.Row="0" 
-                               Style="{StaticResource BodyTextBlockStyle}" 
-                               Opacity="0.8"/>
-                    <TextBlock x:Name="UptimeTextBlock" 
-                               Text="N/A" 
-                               Grid.Column="2" 
-                               Grid.Row="1" 
-                               Style="{StaticResource SubtitleTextBlockStyle}" 
-                               FontWeight="SemiBold"/>
-                </Grid>
-            </Grid>
-        </Border>
-
-        <!-- Recent Alerts -->
-        <Border Grid.Row="3" 
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
-                BorderThickness="1" 
-                CornerRadius="8" 
-                Padding="16">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="Recent Alerts" 
-                           Style="{StaticResource SubtitleTextBlockStyle}" 
-                           FontWeight="SemiBold" 
-                           Margin="0,0,0,12"/>
-                <ListView x:Name="AlertsListView" 
-                          Grid.Row="1" 
-                          SelectionMode="None" 
-                          Background="Transparent" 
-                          BorderThickness="0">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Width="12" 
-                                         Height="12" 
-                                         Fill="{Binding StatusColor}" 
-                                         VerticalAlignment="Center" 
-                                         Margin="0,0,12,0"/>
-                                <TextBlock Text="{Binding Message}" 
-                                           Grid.Column="1" 
-                                           Style="{StaticResource BodyTextBlockStyle}"/>
-                                <TextBlock Text="{Binding TimeStamp}" 
-                                           Grid.Column="2" 
-                                           Style="{StaticResource CaptionTextBlockStyle}" 
-                                           Opacity="0.7" 
-                                           Margin="12,0,0,0"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Padding" Value="0"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
-
-                <!-- No alerts message -->
-                <TextBlock x:Name="NoAlertsTextBlock" 
-                           Grid.Row="1" 
-                           Text="No recent alerts" 
-                           HorizontalAlignment="Center" 
-                           VerticalAlignment="Center" 
-                           Opacity="0.7" 
-                           Visibility="Collapsed"/>
-
-                <!-- Loading indicator -->
-                <ProgressRing x:Name="LoadingRing" 
-                              Grid.Row="1" 
-                              IsActive="True" 
-                              Width="40" 
-                              Height="40" 
-                              HorizontalAlignment="Center" 
-                              VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-
-        <!-- Error InfoBar -->
-        <InfoBar x:Name="ErrorInfoBar" 
-                 Grid.Row="4" 
-                 IsOpen="False" 
-                 Severity="Error" 
-                 Title="Error" 
-                 VerticalAlignment="Bottom" 
-                 Margin="0,20,0,0"/>
-    </Grid>
+    </ScrollViewer>
 </Page>
