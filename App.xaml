@@ -8,6 +8,17 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Define styles inline as fallback -->
+                <ResourceDictionary>
+                    <Style x:Key="DefaultListViewItemStyle" TargetType="ListViewItem">
+                        <Setter Property="MinHeight" Value="40" />
+                        <Setter Property="Padding" Value="12,6,12,6" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                    <Style x:Key="ListViewItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                    </Style>
+                </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

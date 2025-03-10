@@ -1,6 +1,4 @@
-﻿using Microsoft.UI;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using PRTGInsight.Helpers;
@@ -31,41 +29,16 @@ namespace PRTGInsight
         {
             try
             {
-                _window = new Window();
+                _window = new MainWindow();
                 MainWindow = _window;
 
-                // Use a local variable for the frame to ensure it doesn't get collected
-                Frame rootFrame = new();
-                rootFrame.NavigationFailed += OnNavigationFailed;
-
-                // Set window content
-                _window.Content = rootFrame;
-                _window.Title = "PRTG Insight"; // Set title directly
-
-                // IMPORTANT: No icon setting at all during startup
-
-                // Load additional resources after basic initialization
-                LoadAdditionalResources();
-
-                // Activate window first before any further operations
+                // Activate window
                 _window.Activate();
 
-                // Now that the window is activated, navigate directly to the connection page
-                _ = _window.DispatcherQueue.TryEnqueue(() =>
-                {
-                    // Ensure window is fully initialized
-                    if (rootFrame.Content == null)
-                    {
-                        try
-                        {
-                            _ = rootFrame.Navigate(typeof(ConnectionPage), args.Arguments);
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Navigation failed: {ex.Message}");
-                        }
-                    }
-                });
+                // Set window title
+                _window.Title = "PRTG Insight";
+
+                LoadAdditionalResources();
             }
             catch (Exception ex)
             {
@@ -93,104 +66,6 @@ namespace PRTGInsight
             {
                 Debug.WriteLine($"Error loading additional resources: {ex.Message}");
                 // Continue execution even if styles fail to load
-            }
-        }
-
-        private void DelayedSetWindowIcon()
-        {
-            try
-            {
-                // Get the window handle and ensure it's valid.
-                IntPtr hWnd = WindowNative.GetWindowHandle(_window);
-                if (hWnd == IntPtr.Zero)
-                {
-                    System.Diagnostics.Debug.WriteLine("Invalid window handle received.");
-                    return;
-                }
-
-                // Get the WindowId and AppWindow.
-                WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
-                AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-                if (appWindow == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("Failed to obtain AppWindow.");
-                    return;
-                }
-
-                // Use proper array initialization syntax.
-                string[] potentialIconPaths =
-                [
-                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
-                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
-                ];
-
-                bool iconSet = false;
-                foreach (string iconPath in potentialIconPaths)
-                {
-                    if (File.Exists(iconPath))
-                    {
-                        try
-                        {
-                            appWindow.SetIcon(iconPath);
-                            System.Diagnostics.Debug.WriteLine($"Set window icon from: {iconPath}");
-                            iconSet = true;
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Failed to set icon from {iconPath}: {ex.Message}");
-                            // If a particular icon file causes an exception (for example, if the file is corrupt),
-                            // you might opt to continue to the next available file.
-                        }
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Icon file not found: {iconPath}");
-                    }
-                }
-
-                if (!iconSet)
-                {
-                    System.Diagnostics.Debug.WriteLine("WARNING: Could not set window icon from any source");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error setting window icon: {ex.Message}");
-            }
-        }
-
-        private static async Task LoadConnectionInfoAsync()
-        {
-            try
-            {
-                Models.ConnectionInfo connectionInfo = SettingsService.LoadConnectionInfo();
-
-                // Dispatch to UI thread but don't assign the result (which is void)
-                await MainWindow.DispatcherQueue.EnqueueAsync(() =>
-                {
-                    if (connectionInfo == null || string.IsNullOrEmpty(connectionInfo.ServerUrl))
-                    {
-                        // Handle no connection info scenario
-                        System.Diagnostics.Debug.WriteLine("No saved connection, showing login page");
-                        if (MainWindow.Content is Frame rootFrame)
-                        {
-                            _ = rootFrame.Navigate(typeof(ConnectionPage));
-                        }
-                    }
-                    else
-                    {
-                        // Set the connection info in the ConnectionManager
-                        ConnectionManager.CurrentConnection = connectionInfo;
-                        System.Diagnostics.Debug.WriteLine("Loaded connection info from settings");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading connection info: {ex.Message}");
             }
         }
 

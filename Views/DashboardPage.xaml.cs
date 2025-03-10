@@ -53,23 +53,17 @@ namespace PRTGInsight.Views
         {
             try
             {
-                if (MainWindow.Current != null)
+                // Get the current window and access its MainNavigationView
+                if (App.MainWindow?.Content is Grid mainGrid &&
+                    mainGrid.FindName("MainNavigationView") is NavigationView navigationView)
                 {
-                    // Access the NavigationView directly
-                    if (MainWindow.Current.Content is FrameworkElement rootElement)
-                    {
-                        var navView = rootElement.FindName("NavView") as NavigationView;
-                        if (navView != null)
-                        {
-                            // Force open the navigation pane when dashboard loads
-                            navView.IsPaneOpen = true;
-                            Debug.WriteLine("Navigation pane opened on dashboard load");
-                        }
-                        else
-                        {
-                            Debug.WriteLine("NavView not found in MainWindow");
-                        }
-                    }
+                    navigationView.IsPaneOpen = true;
+                    navigationView.Visibility = Visibility.Visible;
+                    Debug.WriteLine("Navigation pane opened on dashboard load");
+                }
+                else
+                {
+                    Debug.WriteLine("MainNavigationView not found");
                 }
             }
             catch (Exception ex)
@@ -82,27 +76,24 @@ namespace PRTGInsight.Views
         {
             try
             {
-                // Toggle NavigationView pane in MainWindow
-                if (MainWindow.Current != null)
+                // Get the current window and access its MainNavigationView
+                if (App.MainWindow?.Content is Grid mainGrid &&
+                    mainGrid.FindName("MainNavigationView") is NavigationView navigationView)
                 {
-                    // Access the NavigationView through Content property
-                    if (MainWindow.Current.Content is FrameworkElement rootElement)
-                    {
-                        var navView = rootElement.FindName("NavView") as NavigationView;
-                        if (navView != null)
-                        {
-                            navView.IsPaneOpen = !navView.IsPaneOpen;
-                            Debug.WriteLine($"Toggled NavView.IsPaneOpen to {navView.IsPaneOpen}");
-                        }
-                        else
-                        {
-                            Debug.WriteLine("NavView not found in MainWindow.Current");
-                        }
-                    }
+                    // Ensure it's visible
+                    navigationView.Visibility = Visibility.Visible;
+
+                    // Force layout update
+                    navigationView.UpdateLayout();
+
+                    // Toggle the pane
+                    navigationView.IsPaneOpen = !navigationView.IsPaneOpen;
+
+                    Debug.WriteLine($"Toggled MainNavigationView.IsPaneOpen to {navigationView.IsPaneOpen}");
                 }
                 else
                 {
-                    Debug.WriteLine("Could not find MainWindow to toggle menu");
+                    Debug.WriteLine("MainNavigationView not found");
                 }
             }
             catch (Exception ex)
@@ -140,7 +131,6 @@ namespace PRTGInsight.Views
         {
             try
             {
-                // Cancel previous operations
                 _cts?.Cancel();
                 _cts = new CancellationTokenSource();
 
@@ -177,7 +167,6 @@ namespace PRTGInsight.Views
                 TopSensorsListView.ItemsSource = sensors;
                 SensorsEmptyState.Visibility = sensors.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-                // Ensure the method remains asynchronous even if no other await is used
                 await Task.CompletedTask;
             }
             catch (Exception ex)
@@ -198,7 +187,6 @@ namespace PRTGInsight.Views
 
             _ = await dialog.ShowAsync();
 
-            // Navigate to connection page
             _ = Frame.Navigate(typeof(ConnectionPage));
         }
 
@@ -211,7 +199,6 @@ namespace PRTGInsight.Views
         {
             try
             {
-                // Show a message for now
                 ContentDialog dialog = new()
                 {
                     Title = "Export Dashboard",
@@ -232,14 +219,12 @@ namespace PRTGInsight.Views
         {
             try
             {
-                // Navigate to alerts page
-                Frame.Navigate(typeof(AlertsPage));
+                _ = Frame.Navigate(typeof(AlertsPage));
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error navigating to alerts: {ex.Message}");
 
-                // Fallback to dialog
                 ContentDialog dialog = new()
                 {
                     Title = "View All Alerts",
@@ -255,15 +240,12 @@ namespace PRTGInsight.Views
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
-
-            // Cancel any ongoing operations
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
         }
     }
 
-    // Simple classes for demo data
     public class AlertItem
     {
         public string Message { get; set; }

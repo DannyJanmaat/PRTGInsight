@@ -1,45 +1,46 @@
 <Window
-    x:Class="PRTGInsight.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:PRTGInsight"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
-
+ x:Class="PRTGInsight.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:local="using:PRTGInsight"
+ xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+ xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+ mc:Ignorable="d">
     <Grid>
-        <!-- Login Frame (visible initially) -->
+        <!-- Login Frame (initially visible) -->
         <Frame x:Name="LoginFrame" Visibility="Visible" />
 
-        <!-- Main Navigation (hidden initially) -->
-        <NavigationView x:Name="NavView" 
-                        Visibility="Collapsed"
-                        IsSettingsVisible="True"
-                        IsBackButtonVisible="Collapsed"
-                        SelectionChanged="NavView_SelectionChanged"
-                        BackRequested="NavView_BackRequested"
-                        PaneDisplayMode="Auto"
-                        CompactPaneLength="48"
-                        OpenPaneLength="240"
-                        IsPaneOpen="True"
-                        PaneToggleButtonStyle="{StaticResource PaneToggleButtonStyle}">
+        <!-- Main Navigation View -->
+        <NavigationView x:Name="MainNavigationView"
+                PaneDisplayMode="Left"
+                CompactModeThresholdWidth="800"
+                IsBackButtonVisible="Collapsed"
+                SelectionChanged="MainNavigationView_SelectionChanged"
+                IsPaneOpen="False"
+                Visibility="Collapsed">
 
-            <!-- Logo in NavigationView header -->
+            <!-- Navigation View Header with Logo -->
             <NavigationView.PaneHeader>
-                <Grid Height="40" Margin="12,8">
+                <Grid Height="60" Margin="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Source="ms-appx:///Assets/PRTGLogo.png" Width="28" Height="28" VerticalAlignment="Center"/>
+
+                    <Image Source="ms-appx:///Assets/PRTGLogo.png" 
+                   Width="40" 
+                   Height="40" 
+                   VerticalAlignment="Center"/>
+
                     <TextBlock Text="PRTG Insight" 
-                   Grid.Column="1" 
-                   VerticalAlignment="Center" 
-                   Margin="12,0,0,0"
-                   Style="{StaticResource SubtitleTextBlockStyle}"/>
+                       Grid.Column="1" 
+                       VerticalAlignment="Center" 
+                       Margin="12,0,0,0" 
+                       Style="{StaticResource SubtitleTextBlockStyle}"/>
                 </Grid>
             </NavigationView.PaneHeader>
 
+            <!-- Main Navigation Items -->
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Dashboard" Tag="dashboard">
                     <NavigationViewItem.Icon>
@@ -71,21 +72,24 @@
                         <FontIcon Glyph="&#xE8A9;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <!-- Footer Menu Items -->
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Content="Settings" Tag="settings">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE115;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Logout" Tag="logout">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE7E8;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-            </NavigationView.MenuItems>
+            </NavigationView.FooterMenuItems>
 
-            <NavigationView.PaneFooter>
-                <StackPanel Orientation="Vertical" Margin="12">
-                    <TextBlock Text="PRTG Insight" Style="{StaticResource CaptionTextBlockStyle}" Margin="0,0,0,4"/>
-                    <TextBlock Text="© 2025 Empower-U" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
-                </StackPanel>
-            </NavigationView.PaneFooter>
-
-            <!-- Content Frame will be set programmatically -->
+            <!-- Main Content Frame -->
+            <Frame x:Name="ContentFrame" />
         </NavigationView>
     </Grid>
 </Window>

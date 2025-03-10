@@ -220,35 +220,8 @@ namespace PRTGInsight.Views
                     // Add a brief delay for user feedback
                     await Task.Delay(1500);
 
-                    // Find parent that might be a MainPage to handle successful login
-                    DependencyObject parent = this;
-                    MainPage mainPage = null;
-                    while (parent != null)
-                    {
-                        parent = VisualTreeHelper.GetParent(parent);
-                        if (parent is MainPage mp)
-                        {
-                            mainPage = mp;
-                            break;
-                        }
-                    }
-
-                    // Trigger login event if subscribed; otherwise, navigate directly
-                    if (LoginSuccessful != null)
-                    {
-                        Debug.WriteLine("ConnectionPage: Triggering LoginSuccessful event");
-                        LoginSuccessful.Invoke(this, connectionInfo);
-                    }
-                    else if (mainPage != null)
-                    {
-                        Debug.WriteLine("ConnectionPage: Found MainPage, calling NavigateToDashboard");
-                        mainPage.NavigateToDashboard();
-                    }
-                    else
-                    {
-                        Debug.WriteLine("ConnectionPage: No subscribers and no MainPage, using fallback navigation");
-                        NavigateToDashboard(connectionInfo);
-                    }
+                    // Navigate to dashboard
+                    NavigateToDashboard(connectionInfo);
                 }
                 else
                 {
@@ -285,44 +258,58 @@ namespace PRTGInsight.Views
             }
         }
 
-        // In ConnectionPage.xaml.cs, modify the NavigateToDashboard method:
-
         private void NavigateToDashboard(ConnectionInfo connectionInfo)
         {
             try
             {
-                // Use MainWindow's method to handle post-login navigation if available
-                if (MainWindow.Current != null && MainWindow.Current.Content != null)
+                // Directly access MainNavigationView and other components
+                if (App.MainWindow?.Content is Grid mainGrid)
                 {
-                    System.Diagnostics.Debug.WriteLine("ConnectionPage: Using MainWindow.Current to navigate");
+                    // Find the necessary components
+                    var navigationView = mainGrid.FindName("MainNavigationView") as NavigationView;
+                    var loginFrame = mainGrid.FindName("LoginFrame") as Frame;
+                    var contentFrame = mainGrid.FindName("ContentFrame") as Frame;
 
-                    // Fixed: Cast the MainWindow properly
-                    if (MainWindow.Current is MainWindow mainWindow)
+                    if (navigationView != null && loginFrame != null && contentFrame != null)
                     {
-                        // Call the method
-                        mainWindow.HandleAutoLogin(connectionInfo);
+                        // Hide login frame
+                        loginFrame.Visibility = Visibility.Collapsed;
+
+                        // Show and configure navigation view
+                        navigationView.Visibility = Visibility.Visible;
+                        navigationView.IsPaneOpen = true;
+
+                        // Navigate to dashboard
+                        _ = contentFrame.Navigate(typeof(DashboardPage));
+
+                        // Select first menu item
+                        if (navigationView.MenuItems.Count > 0)
+                        {
+                            navigationView.SelectedItem = navigationView.MenuItems[0];
+                        }
+
+                        Debug.WriteLine("Successfully navigated to dashboard");
                         return;
                     }
                 }
 
-                // Fallback: search for a parent Frame to navigate
-                DependencyObject parent = this;
-                while (parent is not null and not Microsoft.UI.Xaml.Controls.Frame)
-                {
-                    parent = VisualTreeHelper.GetParent(parent);
-                }
-
-                if (parent is Frame parentFrame)
-                {
-                    Debug.WriteLine("ConnectionPage: Navigating using parent frame");
-                    _ = parentFrame.Navigate(typeof(DashboardPage));
-                    return;
-                }
-                Debug.WriteLine("ConnectionPage: Could not find a navigation frame");
+                // Fallback navigation if components not found
+                Debug.WriteLine("Could not find navigation components, using frame navigation");
+                _ = Frame.Navigate(typeof(DashboardPage));
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ConnectionPage: Error in NavigateToDashboard: {ex.Message}");
+                Debug.WriteLine($"Error navigating to dashboard: {ex.Message}");
+
+                // Fallback to frame navigation
+                try
+                {
+                    _ = Frame.Navigate(typeof(DashboardPage));
+                }
+                catch (Exception fallbackEx)
+                {
+                    Debug.WriteLine($"Fallback navigation failed: {fallbackEx.Message}");
+                }
             }
         }
 
