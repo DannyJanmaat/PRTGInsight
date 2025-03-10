@@ -8,15 +8,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
-            <Style x:Key="ListViewItemStyle" TargetType="ListViewItem">
-                <Setter Property="MinHeight" Value="40"/>
-                <Setter Property="Padding" Value="12,6,12,6"/>
-                <Setter Property="HorizontalContentAlignment" Value="{TemplateBinding HorizontalContentAlignment}"/>
-                <Setter Property="VerticalContentAlignment" Value="{TemplateBinding VerticalContentAlignment}"/>
-            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

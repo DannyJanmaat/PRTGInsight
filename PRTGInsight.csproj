@@ -11,6 +11,8 @@
 		<EnableMsixTooling>false</EnableMsixTooling>
 		<WindowsPackageType>None</WindowsPackageType>
 		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+		<SelfContained>true</SelfContained>
+		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationDefinition>App.xaml</ApplicationDefinition>
 		<StartupObject>PRTGInsight.Program</StartupObject>
@@ -19,9 +21,13 @@
 		<ApplicationIcon>Assets\PRTGInsight.ico</ApplicationIcon>
 		<!-- Explicitly disable default items to have more control -->
 		<EnableDefaultItems>false</EnableDefaultItems>
+		<!-- Add these properties to stabilize WinUI 3 -->
+		<DisableXbfLineInfo>true</DisableXbfLineInfo>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<PublishReadyToRun>false</PublishReadyToRun>
 	</PropertyGroup>
 
-	<!-- Package references -->
+	<!-- Package references - Update NuGet packages to more stable versions -->
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />

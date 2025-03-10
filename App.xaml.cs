@@ -44,17 +44,21 @@ namespace PRTGInsight
 
                 // IMPORTANT: No icon setting at all during startup
 
+                // Load additional resources after basic initialization
+                LoadAdditionalResources();
+
                 // Activate window first before any further operations
                 _window.Activate();
 
                 // Now that the window is activated, navigate directly to the connection page
-                _window.DispatcherQueue.TryEnqueue(() => {
+                _ = _window.DispatcherQueue.TryEnqueue(() =>
+                {
                     // Ensure window is fully initialized
                     if (rootFrame.Content == null)
                     {
                         try
                         {
-                            rootFrame.Navigate(typeof(ConnectionPage), args.Arguments);
+                            _ = rootFrame.Navigate(typeof(ConnectionPage), args.Arguments);
                         }
                         catch (Exception ex)
                         {
@@ -69,6 +73,28 @@ namespace PRTGInsight
             }
         }
 
+        private void LoadAdditionalResources()
+        {
+            try
+            {
+                // Create and load the resource dictionary
+                ResourceDictionary stylesDictionary = [];
+
+                // Load the resource dictionary - The URI format is important
+                Uri resourceUri = new("ms-appx:///Styles.xaml", UriKind.Absolute);
+                stylesDictionary.Source = resourceUri;
+
+                // Add to the application resources
+                Resources.MergedDictionaries.Add(stylesDictionary);
+
+                Debug.WriteLine("Additional resources loaded successfully");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error loading additional resources: {ex.Message}");
+                // Continue execution even if styles fail to load
+            }
+        }
 
         private void DelayedSetWindowIcon()
         {
@@ -94,10 +120,10 @@ namespace PRTGInsight
                 // Use proper array initialization syntax.
                 string[] potentialIconPaths =
                 [
-            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
-            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
+                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
+                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
                 ];
 
                 bool iconSet = false;
@@ -136,7 +162,6 @@ namespace PRTGInsight
             }
         }
 
-
         private static async Task LoadConnectionInfoAsync()
         {
             try
@@ -171,7 +196,8 @@ namespace PRTGInsight
 
         private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+            Debug.WriteLine($"Navigation failed: {e.SourcePageType.FullName} - {e.Exception?.Message}");
+            // Log but don't throw to avoid crashing the app
         }
 
         private void OnSuspending(object sender, SuspendingEventArgs e)

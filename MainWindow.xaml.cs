@@ -41,6 +41,31 @@ namespace PRTGInsight
 
             // Always show the authentication page first
             LoadConnectionInfoAsync();
+
+            // Delayed style application to avoid memory issues during initialization
+            _ = DispatcherQueue.TryEnqueue(CreateAndApplyStyles);
+        }
+
+        private void CreateAndApplyStyles()
+        {
+            try
+            {
+                // Create ListViewItemStyle programmatically
+                Style listViewItemStyle = new(typeof(ListViewItem));
+                listViewItemStyle.Setters.Add(new Setter(ListViewItem.MinHeightProperty, 40.0));
+                listViewItemStyle.Setters.Add(new Setter(ListViewItem.PaddingProperty, new Thickness(12, 6, 12, 6)));
+                listViewItemStyle.Setters.Add(new Setter(ListViewItem.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+                listViewItemStyle.Setters.Add(new Setter(ListViewItem.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+
+                // Add style to application resources
+                Application.Current.Resources["ListViewItemStyle"] = listViewItemStyle;
+
+                Debug.WriteLine("Custom styles applied programmatically");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error creating custom styles: {ex.Message}");
+            }
         }
 
         private void LoadConnectionInfoAsync()
@@ -125,11 +150,11 @@ namespace PRTGInsight
                 // Simplified array initialization
                 string[] potentialIconPaths =
                 [
-            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
-            Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
-        ];
+                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGInsight.ico"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGInsight.ico"),
+                    Path.Combine(AppContext.BaseDirectory, "Assets", "PRTGLogo.png"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PRTGLogo.png")
+                ];
 
                 bool iconSet = false;
                 foreach (string iconPath in potentialIconPaths)
@@ -177,9 +202,10 @@ namespace PRTGInsight
                 {
                     LoginFrame.Visibility = Visibility.Collapsed;
                     NavView.Visibility = Visibility.Visible;
+                    NavView.IsPaneOpen = true;
                     _ = _contentFrame.Navigate(typeof(DashboardPage));
                     NavView.SelectedItem = NavView.MenuItems[0];
-                    Debug.WriteLine("MainWindow: Navigation to dashboard complete in HandleAutoLogin");
+                    Debug.WriteLine($"MainWindow: Navigation to dashboard complete, NavView visibility: {NavView.Visibility}, IsPaneOpen: {NavView.IsPaneOpen}");
                 }
                 catch (Exception ex)
                 {
@@ -198,11 +224,18 @@ namespace PRTGInsight
             {
                 try
                 {
+                    // Make sure the NavigationView is visible
                     LoginFrame.Visibility = Visibility.Collapsed;
                     NavView.Visibility = Visibility.Visible;
+
+                    // Explicitly open the pane
+                    NavView.IsPaneOpen = true;
+
+                    // Navigate to dashboard
                     _ = _contentFrame.Navigate(typeof(DashboardPage));
                     NavView.SelectedItem = NavView.MenuItems[0];
-                    Debug.WriteLine("MainWindow: Navigation to dashboard complete in OnLoginSuccessful");
+
+                    Debug.WriteLine($"MainWindow: Navigation to dashboard complete, NavView visibility: {NavView.Visibility}, IsPaneOpen: {NavView.IsPaneOpen}");
                 }
                 catch (Exception ex)
                 {
@@ -251,9 +284,6 @@ namespace PRTGInsight
                         break;
                     case "exports":
                         _ = _contentFrame.Navigate(typeof(ExportsPage));
-                        break;
-                    case "refresh":
-                        RefreshCurrentPage();
                         break;
                     case "reports":
                         _ = _contentFrame.Navigate(typeof(ReportsPage));

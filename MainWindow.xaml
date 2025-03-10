@@ -18,7 +18,11 @@
                         IsBackButtonVisible="Collapsed"
                         SelectionChanged="NavView_SelectionChanged"
                         BackRequested="NavView_BackRequested"
-                        PaneDisplayMode="Auto">
+                        PaneDisplayMode="Auto"
+                        CompactPaneLength="48"
+                        OpenPaneLength="240"
+                        IsPaneOpen="True"
+                        PaneToggleButtonStyle="{StaticResource PaneToggleButtonStyle}">
 
             <!-- Logo in NavigationView header -->
             <NavigationView.PaneHeader>
@@ -42,25 +46,31 @@
                         <FontIcon Glyph="&#xE80F;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
                 <NavigationViewItem Content="Sensors" Tag="sensors">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xEA80;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
                 <NavigationViewItem Content="Devices" Tag="devices">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE770;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
+                <NavigationViewItem Content="Alerts" Tag="alerts">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7BA;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Exports" Tag="exports">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE896;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Reports" Tag="reports">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8A9;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
                 <NavigationViewItem Content="Logout" Tag="logout">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE7E8;"/>

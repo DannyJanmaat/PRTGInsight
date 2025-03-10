@@ -59,7 +59,7 @@
                               Background="Transparent">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="0,8,0,8">
+                                <Grid Margin="0,4,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
@@ -79,160 +79,157 @@
                 </Grid>
             </SplitView.Pane>
 
-            <!-- Main content -->
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="16"
-                        Padding="40,32"
-                        MaxWidth="500"
-                        MinWidth="460"
-                        Translation="0,0,24">
-                    <!-- Card shadow effect simulated with BorderBrush -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <!-- Add an extra row for the loading indicator -->
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Logo and title -->
-                        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,32">
-                            <Image Source="/Assets/PRTGLogo.png" Width="100" Margin="0,0,0,20"/>
-                            <TextBlock Text="PRTG Insight" 
-                                       Style="{StaticResource TitleLargeTextBlockStyle}" 
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="Enterprise Monitoring Dashboard" 
-                                       Style="{StaticResource SubtitleTextBlockStyle}" 
-                                       HorizontalAlignment="Center"
-                                       Opacity="0.7"
-                                       Margin="0,8,0,0"/>
-                        </StackPanel>
-
-                        <!-- Login form -->
-                        <StackPanel Grid.Row="1" Spacing="20">
+            <!-- Main content - Scrollable container for the login form -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                Margin="20" MaxWidth="440">
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="16"
+                                Padding="24,20">
+                            <!-- Card content -->
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                                <TextBox x:Name="ServerUrlTextBox" 
-                                         PlaceholderText="PRTG Server URL"
-                                         Header="Server URL"
-                                         Width="400"
-                                         HorizontalAlignment="Stretch"/>
+                                <!-- Logo and title -->
+                                <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20">
+                                    <Image Source="/Assets/PRTGLogo.png" Width="80" Margin="0,0,0,16"/>
+                                    <TextBlock Text="PRTG Insight" 
+                                               Style="{StaticResource TitleLargeTextBlockStyle}" 
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Enterprise Monitoring Dashboard" 
+                                               Style="{StaticResource SubtitleTextBlockStyle}" 
+                                               HorizontalAlignment="Center"
+                                               Opacity="0.7"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
 
-                                <Button Grid.Column="1" 
-                                        VerticalAlignment="Bottom"
-                                        Margin="8,0,0,0"
-                                        ToolTipService.ToolTip="Show Recent Connections"
-                                        Click="ToggleHistoryPane">
-                                    <FontIcon Glyph="&#xE81C;" FontSize="16"/>
-                                </Button>
+                                <!-- Login form -->
+                                <StackPanel Grid.Row="1" Spacing="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox x:Name="ServerUrlTextBox" 
+                                                 PlaceholderText="PRTG Server URL"
+                                                 Header="Server URL"
+                                                 HorizontalAlignment="Stretch"/>
+
+                                        <Button Grid.Column="1" 
+                                                VerticalAlignment="Bottom"
+                                                Margin="8,0,0,0"
+                                                ToolTipService.ToolTip="Show Recent Connections"
+                                                Click="ToggleHistoryPane">
+                                            <FontIcon Glyph="&#xE81C;" FontSize="16"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <StackPanel Spacing="12">
+                                        <TextBlock Text="Authentication Method" 
+                                                   Style="{StaticResource BodyStrongTextBlockStyle}"/>
+
+                                        <RadioButtons x:Name="AuthTypeRadioButtons">
+                                            <RadioButton x:Name="ApiKeyRadio" 
+                                                         Content="API Key" 
+                                                         IsChecked="True" 
+                                                         Checked="AuthType_Changed"
+                                                         Margin="0,0,0,4"/>
+
+                                            <RadioButton x:Name="UsernamePasswordRadio" 
+                                                         Content="Username/Password" 
+                                                         Checked="AuthType_Changed"/>
+                                        </RadioButtons>
+                                    </StackPanel>
+
+                                    <!-- Username/Password fields -->
+                                    <StackPanel x:Name="UsernamePasswordPanel" Spacing="16" Visibility="Collapsed">
+                                        <TextBox x:Name="UsernameTextBox" 
+                                                 PlaceholderText="Username"
+                                                 Header="Username"
+                                                 HorizontalAlignment="Stretch"/>
+
+                                        <PasswordBox x:Name="PasswordBox"
+                                                     PlaceholderText="Password"
+                                                     Header="Password"
+                                                     HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <!-- API Key field -->
+                                    <StackPanel x:Name="ApiKeyPanel" Spacing="8">
+                                        <PasswordBox x:Name="ApiKeyBox"
+                                                     PlaceholderText="Enter your PRTG API Key"
+                                                     Header="API Key"
+                                                     HorizontalAlignment="Stretch"/>
+                                        <TextBlock Text="Find your API Key in PRTG under Setup > Account Settings"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Status info -->
+                                <StackPanel Grid.Row="2" Margin="0,16,0,0">
+                                    <InfoBar x:Name="StatusInfoBar"
+                                             IsOpen="False"
+                                             Severity="Informational"
+                                             Title="Status"
+                                             Message="Enter connection details and click Connect"/>
+
+                                    <!-- SSL Warning -->
+                                    <InfoBar x:Name="SslWarningInfoBar"
+                                             IsOpen="False"
+                                             Severity="Warning"
+                                             Title="SSL Certificate Warning"
+                                             Message="The server is using an invalid SSL certificate. The connection will proceed anyway."
+                                             Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <!-- Connection buttons -->
+                                <Grid Grid.Row="3" Margin="0,16,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Loading indicator -->
+                                    <ProgressRing x:Name="LoadingProgressRing"
+                                                  IsActive="False"
+                                                  Width="20"
+                                                  Height="20"
+                                                  VerticalAlignment="Center"
+                                                  Grid.Column="0"
+                                                  Margin="0,0,12,0"/>
+
+                                    <!-- Buttons -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                                        <Button x:Name="CancelButton"
+                                                Content="Cancel"
+                                                Click="CancelButton_Click"
+                                                IsEnabled="False"
+                                                MinWidth="80"/>
+                                        <Button x:Name="ConnectButton"
+                                                Content="Connect"
+                                                Click="ConnectButton_Click"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                MinWidth="80"/>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
-
-                            <StackPanel Spacing="16">
-                                <TextBlock Text="Authentication Method" 
-                                           Style="{StaticResource BodyStrongTextBlockStyle}"/>
-
-                                <RadioButtons x:Name="AuthTypeRadioButtons">
-                                    <RadioButton x:Name="ApiKeyRadio" 
-                                                 Content="API Key" 
-                                                 IsChecked="True" 
-                                                 Checked="AuthType_Changed"
-                                                 Margin="0,0,0,8"/>
-
-                                    <RadioButton x:Name="UsernamePasswordRadio" 
-                                                 Content="Username/Password" 
-                                                 Checked="AuthType_Changed"/>
-                                </RadioButtons>
-                            </StackPanel>
-
-                            <!-- Username/Password fields -->
-                            <StackPanel x:Name="UsernamePasswordPanel" Spacing="16" Visibility="Collapsed">
-                                <TextBox x:Name="UsernameTextBox" 
-                                         PlaceholderText="Username"
-                                         Header="Username"
-                                         Width="400"
-                                         HorizontalAlignment="Stretch"/>
-
-                                <PasswordBox x:Name="PasswordBox"
-                                             PlaceholderText="Password"
-                                             Header="Password"
-                                             Width="400"
-                                             HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
-                            <!-- API Key field -->
-                            <StackPanel x:Name="ApiKeyPanel" Spacing="12">
-                                <PasswordBox x:Name="ApiKeyBox"
-                                             PlaceholderText="Enter your PRTG API Key"
-                                             Header="API Key"
-                                             Width="400"
-                                             HorizontalAlignment="Stretch"/>
-                                <TextBlock Text="Find your API Key in PRTG under Setup > Account Settings"
-                                           TextWrapping="Wrap"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           FontSize="12"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Status info -->
-                        <InfoBar x:Name="StatusInfoBar"
-                                 Grid.Row="2"
-                                 IsOpen="False"
-                                 Severity="Informational"
-                                 Title="Status"
-                                 Message="Enter connection details and click Connect"
-                                 Margin="0,24,0,0"/>
-
-                        <!-- SSL Warning -->
-                        <InfoBar x:Name="SslWarningInfoBar"
-                                 Grid.Row="2"
-                                 IsOpen="False"
-                                 Severity="Warning"
-                                 Title="SSL Certificate Warning"
-                                 Message="The server is using an invalid SSL certificate. The connection will proceed anyway."
-                                 Margin="0,4,0,0"/>
-
-                        <!-- Connection buttons -->
-                        <Grid Grid.Row="3" Margin="0,24,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- Added ProgressRing for loading state -->
-                            <ProgressRing x:Name="LoadingProgressRing"
-                                          IsActive="False"
-                                          Width="20"
-                                          Height="20"
-                                          VerticalAlignment="Center"
-                                          Grid.Column="0"
-                                          Margin="0,0,12,0"/>
-
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
-                                <Button x:Name="CancelButton"
-                                        Content="Cancel"
-                                        Click="CancelButton_Click"
-                                        IsEnabled="False"
-                                        Width="100"/>
-                                <Button x:Name="ConnectButton"
-                                        Content="Connect"
-                                        Click="ConnectButton_Click"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Width="100"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
-            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
         </SplitView>
     </Grid>
 </Page>

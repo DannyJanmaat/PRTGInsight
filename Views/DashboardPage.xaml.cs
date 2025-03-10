@@ -44,6 +44,71 @@ namespace PRTGInsight.Views
                     ShowConnectionError();
                 }
             }
+
+            // Ensure the navigation pane is open when dashboard is loaded
+            EnsureNavigationPaneIsOpen();
+        }
+
+        private void EnsureNavigationPaneIsOpen()
+        {
+            try
+            {
+                if (MainWindow.Current != null)
+                {
+                    // Access the NavigationView directly
+                    if (MainWindow.Current.Content is FrameworkElement rootElement)
+                    {
+                        var navView = rootElement.FindName("NavView") as NavigationView;
+                        if (navView != null)
+                        {
+                            // Force open the navigation pane when dashboard loads
+                            navView.IsPaneOpen = true;
+                            Debug.WriteLine("Navigation pane opened on dashboard load");
+                        }
+                        else
+                        {
+                            Debug.WriteLine("NavView not found in MainWindow");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error opening navigation pane: {ex.Message}");
+            }
+        }
+
+        private void MenuToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Toggle NavigationView pane in MainWindow
+                if (MainWindow.Current != null)
+                {
+                    // Access the NavigationView through Content property
+                    if (MainWindow.Current.Content is FrameworkElement rootElement)
+                    {
+                        var navView = rootElement.FindName("NavView") as NavigationView;
+                        if (navView != null)
+                        {
+                            navView.IsPaneOpen = !navView.IsPaneOpen;
+                            Debug.WriteLine($"Toggled NavView.IsPaneOpen to {navView.IsPaneOpen}");
+                        }
+                        else
+                        {
+                            Debug.WriteLine("NavView not found in MainWindow.Current");
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("Could not find MainWindow to toggle menu");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error toggling menu: {ex.Message}");
+            }
         }
 
         private async void LoadData()
@@ -66,7 +131,6 @@ namespace PRTGInsight.Views
             }
         }
 
-        // Add this method to fix the RefreshService reference
         public async void RefreshData()
         {
             await LoadDashboardData();
@@ -166,23 +230,26 @@ namespace PRTGInsight.Views
 
         private async void ViewAllAlertsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Show a message for now
-            ContentDialog dialog = new()
+            try
             {
-                Title = "View All Alerts",
-                Content = "This feature is not yet implemented.",
-                CloseButtonText = "OK",
-                XamlRoot = this.XamlRoot
-            };
+                // Navigate to alerts page
+                Frame.Navigate(typeof(AlertsPage));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to alerts: {ex.Message}");
 
-            _ = await dialog.ShowAsync();
-        }
+                // Fallback to dialog
+                ContentDialog dialog = new()
+                {
+                    Title = "View All Alerts",
+                    Content = "Navigation to Alerts page failed.",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.XamlRoot
+                };
 
-        // Newly added ConnectButton_Click event handler.
-        private void ConnectButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Navigate to the connection page to allow user authentication.
-            Frame.Navigate(typeof(ConnectionPage));
+                _ = await dialog.ShowAsync();
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

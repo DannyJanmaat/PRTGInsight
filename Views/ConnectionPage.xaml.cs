@@ -25,6 +25,8 @@ namespace PRTGInsight.Views
             this.InitializeComponent();
             _prtgService = new PrtgService();
             this.Loaded += OnPageLoaded;
+            // Use Unloaded event instead of overriding OnUnloaded
+            this.Unloaded += ConnectionPage_Unloaded;
         }
 
         private async void OnPageLoaded(object _, RoutedEventArgs __)
@@ -35,6 +37,21 @@ namespace PRTGInsight.Views
             // Load login history
             System.Collections.Generic.List<string> loginHistory = await LoginHistoryService.LoadLoginHistoryAsync();
             LoginHistoryListView.ItemsSource = loginHistory;
+        }
+
+        // Replace OnUnloaded with ConnectionPage_Unloaded event handler
+        private void ConnectionPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            // Clean up event handlers
+            this.Loaded -= OnPageLoaded;
+            this.Unloaded -= ConnectionPage_Unloaded;
+
+            // Cancel any pending operations
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+
+            Debug.WriteLine("ConnectionPage: Unloaded and cleaned up resources");
         }
 
         private void EnsureUIComponents()
@@ -104,18 +121,6 @@ namespace PRTGInsight.Views
             }
         }
 
-        protected override void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            base.OnUnloaded(sender, e);
-
-            // Clean up event handlers
-            this.Loaded -= OnPageLoaded;
-
-            // Cancel any pending operations
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-        }
         private async Task TestConnection()
         {
             // Get values from UI
@@ -151,7 +156,7 @@ namespace PRTGInsight.Views
             try
             {
                 // Show loading indicator and disable buttons
-                LoadingProgressRing.IsActive = true; // Updated reference
+                LoadingProgressRing.IsActive = true;
                 ConnectButton.IsEnabled = false;
                 CancelButton.IsEnabled = true;
                 StatusInfoBar.IsOpen = false;
@@ -215,15 +220,33 @@ namespace PRTGInsight.Views
                     // Add a brief delay for user feedback
                     await Task.Delay(1500);
 
+                    // Find parent that might be a MainPage to handle successful login
+                    DependencyObject parent = this;
+                    MainPage mainPage = null;
+                    while (parent != null)
+                    {
+                        parent = VisualTreeHelper.GetParent(parent);
+                        if (parent is MainPage mp)
+                        {
+                            mainPage = mp;
+                            break;
+                        }
+                    }
+
                     // Trigger login event if subscribed; otherwise, navigate directly
-                    if (LoginSuccessful is not null)
+                    if (LoginSuccessful != null)
                     {
                         Debug.WriteLine("ConnectionPage: Triggering LoginSuccessful event");
                         LoginSuccessful.Invoke(this, connectionInfo);
                     }
+                    else if (mainPage != null)
+                    {
+                        Debug.WriteLine("ConnectionPage: Found MainPage, calling NavigateToDashboard");
+                        mainPage.NavigateToDashboard();
+                    }
                     else
                     {
-                        Debug.WriteLine("ConnectionPage: No subscribers to LoginSuccessful event; using fallback navigation");
+                        Debug.WriteLine("ConnectionPage: No subscribers and no MainPage, using fallback navigation");
                         NavigateToDashboard(connectionInfo);
                     }
                 }
@@ -245,11 +268,24 @@ namespace PRTGInsight.Views
             finally
             {
                 // Reset UI state
-                LoadingProgressRing.IsActive = false; // Updated reference
-                ConnectButton.IsEnabled = true;
-                CancelButton.IsEnabled = false;
+                if (LoadingProgressRing != null) // Add null check for safety
+                {
+                    LoadingProgressRing.IsActive = false;
+                }
+
+                if (ConnectButton != null) // Add null check for safety
+                {
+                    ConnectButton.IsEnabled = true;
+                }
+
+                if (CancelButton != null) // Add null check for safety
+                {
+                    CancelButton.IsEnabled = false;
+                }
             }
         }
+
+        // In ConnectionPage.xaml.cs, modify the NavigateToDashboard method:
 
         private void NavigateToDashboard(ConnectionInfo connectionInfo)
         {
@@ -260,12 +296,13 @@ namespace PRTGInsight.Views
                 {
                     System.Diagnostics.Debug.WriteLine("ConnectionPage: Using MainWindow.Current to navigate");
 
-                    // Create a local reference to prevent GC
-                    var mainWindow = MainWindow.Current;
-
-                    // Call the method
-                    mainWindow.HandleAutoLogin(connectionInfo);
-                    return;
+                    // Fixed: Cast the MainWindow properly
+                    if (MainWindow.Current is MainWindow mainWindow)
+                    {
+                        // Call the method
+                        mainWindow.HandleAutoLogin(connectionInfo);
+                        return;
+                    }
                 }
 
                 // Fallback: search for a parent Frame to navigate
@@ -274,6 +311,7 @@ namespace PRTGInsight.Views
                 {
                     parent = VisualTreeHelper.GetParent(parent);
                 }
+
                 if (parent is Frame parentFrame)
                 {
                     Debug.WriteLine("ConnectionPage: Navigating using parent frame");

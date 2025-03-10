@@ -6,11 +6,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 
 namespace PRTGInsight
 {
     public class Program
     {
+        private static App _appInstance;
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -54,7 +57,8 @@ namespace PRTGInsight
                         System.Threading.SynchronizationContext.SetSynchronizationContext(context);
 
                         Debug.WriteLine("Creating App instance");
-                        new App(); // No underscore - we want to keep this reference
+                        _appInstance = new App(); // Store in static field to prevent GC
+                        GC.KeepAlive(_appInstance);
                     }
                     catch (Exception ex)
                     {
